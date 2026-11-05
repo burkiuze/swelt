@@ -42,7 +42,7 @@ function UploadButton({ onUrl }: { onUrl: (u: string) => void }) {
       <button type="button" className="btn shrink-0" onClick={() => ref.current?.click()} disabled={busy}>
         {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Upload
       </button>
-      {err && <span className="text-xs text-rose-400">{err}</span>}
+      {err && <span className="text-xs text-[#ff9592]">{err}</span>}
     </>
   );
 }
@@ -65,7 +65,7 @@ export function FieldInput({ field: f, value, onChange }: { field: Field; value:
     <label className="mb-1.5 flex items-center justify-between text-sm">
       <span className="font-medium">
         {f.label}
-        {f.required && <span className="text-rose-400"> *</span>}
+        {f.required && <span className="text-[#ff9592]"> *</span>}
       </span>
       {f.help && <span className="text-xs text-dim">{f.help}</span>}
     </label>
@@ -96,7 +96,7 @@ export function FieldInput({ field: f, value, onChange }: { field: Field; value:
       return (
         <label className="flex cursor-pointer items-center justify-between rounded-lg border border-line px-3 py-2.5 text-sm">
           <span className="font-medium">{f.label}</span>
-          <input type="checkbox" checked={value === true || value === "true"} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-violet-500" />
+          <input type="checkbox" checked={value === true || value === "true"} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-white" />
         </label>
       );
     case "number":
@@ -105,7 +105,7 @@ export function FieldInput({ field: f, value, onChange }: { field: Field; value:
           {label}
           <div className="flex items-center gap-3">
             {f.min !== undefined && f.max !== undefined && (
-              <input type="range" min={f.min} max={f.max} step={f.step ?? 1} value={Number(value ?? f.default ?? 0)} onChange={(e) => onChange(Number(e.target.value))} className="flex-1 accent-violet-500" />
+              <input type="range" min={f.min} max={f.max} step={f.step ?? 1} value={Number(value ?? f.default ?? 0)} onChange={(e) => onChange(Number(e.target.value))} className="flex-1 accent-white" />
             )}
             <input type="number" className="input w-28" value={String(value ?? "")} min={f.min} max={f.max} step={f.step ?? 1} onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))} />
           </div>

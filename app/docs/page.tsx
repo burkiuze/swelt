@@ -14,7 +14,7 @@ export default function Page() {
       </div>
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Get an API key</h2>
-        <p className="text-muted">Create one on the <Link href="/keys" className="text-violet-300 underline">API Keys</Link> page and export it as <code>SWELT_KEY</code>.</p>
+        <p className="text-muted">Create one on the <Link href="/keys" className="text-white underline underline-offset-2">API Keys</Link> page and export it as <code>SWELT_KEY</code>.</p>
       </section>
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">2. Submit a request</h2>

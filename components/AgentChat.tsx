@@ -40,7 +40,7 @@ function JobCard({ job: initial }: { job: JobView }) {
         {job.media[0] ? (
           <Media url={job.media[0]} kind={job.kind} />
         ) : job.status === "FAILED" ? (
-          <div className="p-3 text-center text-xs text-rose-300">{job.error || "Failed"}</div>
+          <div className="p-3 text-center text-xs text-[#ff9592]">{job.error || "Failed"}</div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-xs text-muted">
             <Loader2 size={18} className="animate-spin" /> {job.status === "IN_PROGRESS" ? "Generating…" : "In queue…"}
@@ -64,7 +64,7 @@ function ProposalCard({ p, onRun }: { p: Proposal; onRun: (j: JobView) => void }
       <div className="font-medium">{model?.name ?? p.model_id}</div>
       {p.reason && <div className="text-muted">{p.reason}</div>}
       <pre className="max-h-40 overflow-auto rounded bg-[#0c0c0e] p-2 text-xs text-zinc-400">{JSON.stringify(p.input, null, 2)}</pre>
-      {err && <div className="text-xs text-rose-300">{err}</div>}
+      {err && <div className="text-xs text-[#ff9592]">{err}</div>}
       {state === "idle" && (
         <div className="flex gap-2">
           <button
@@ -86,7 +86,7 @@ function ProposalCard({ p, onRun }: { p: Proposal; onRun: (j: JobView) => void }
         </div>
       )}
       {state === "running" && <Loader2 className="animate-spin" size={16} />}
-      {state === "done" && <div className="flex items-center gap-1 text-emerald-400"><Check size={14} /> Started</div>}
+      {state === "done" && <div className="flex items-center gap-1 text-[#4ade80]"><Check size={14} /> Started</div>}
       {state === "skipped" && <div className="text-dim">Skipped</div>}
     </div>
   );
@@ -159,11 +159,11 @@ export function AgentChat() {
         )}
         {msgs.map((m, i) => (
           <div key={i} className="flex gap-3">
-            <div className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${m.role === "user" ? "bg-panel-2" : "bg-gradient-to-br from-violet-500 to-pink-500"}`}>
+            <div className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${m.role === "user" ? "bg-panel-2" : "bg-[#ededed] text-black"}`}>
               {m.role === "user" ? <User size={15} /> : <Bot size={15} />}
             </div>
             <div className="min-w-0 flex-1 space-y-3">
-              {m.content && <div className={`whitespace-pre-wrap leading-relaxed ${m.error ? "text-rose-300" : ""}`}>{m.content}</div>}
+              {m.content && <div className={`whitespace-pre-wrap leading-relaxed ${m.error ? "text-[#ff9592]" : ""}`}>{m.content}</div>}
               {m.attachments && m.attachments.length > 0 && (
                 <div className="flex gap-2">
                   {m.attachments.map((u) => (
@@ -193,7 +193,7 @@ export function AgentChat() {
         <div ref={bottom} />
       </div>
 
-      <div className="sticky bottom-4 mt-6 overflow-hidden rounded-2xl border border-line bg-panel shadow-2xl shadow-black/50">
+      <div className="sticky bottom-4 mt-6 overflow-hidden rounded-lg border border-line bg-panel">
         {attachments.length > 0 && (
           <div className="flex gap-2 px-3 pt-3">
             {attachments.map((u, k) => (

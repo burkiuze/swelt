@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Activity, BookOpen, Check, ImageIcon, KeyRound, LayoutGrid, Plug } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CircleDollarSign, FileText, ImageIcon, KeyRound, LayoutGrid, ReceiptText } from "lucide-react";
 import { getModel } from "@/lib/catalog";
 import { Media } from "./Media";
 import { ModelRow } from "./ModelCard";
@@ -16,14 +16,16 @@ type Stats = {
   credits: number | null;
   unlimited: boolean;
 };
-type Item = { request_id: string; model_id: string; status: string; media: string[]; kind: string; created_at?: string };
+type Item = { request_id: string; model_id: string; status: string; media: string[]; kind: string };
 
-function Bars({ values, color }: { values: number[]; color: string }) {
+/** fal-style dashed sparkline: a row of small segments, taller when there is activity. */
+function Dashes({ values, color }: { values: number[]; color: string }) {
   const max = Math.max(1, ...values);
+  const segs = values.flatMap((v) => [v, v, v]);
   return (
-    <div className="flex h-20 flex-1 items-end gap-1 rounded-md bg-panel-2 p-2">
-      {values.map((v, i) => (
-        <div key={i} className="flex-1 rounded-sm" style={{ height: `${Math.max(6, (v / max) * 100)}%`, background: color, opacity: v ? 1 : 0.35 }} />
+    <div className="flex h-24 flex-1 items-end gap-[3px] rounded-md bg-[#232323] p-2.5">
+      {segs.map((v, i) => (
+        <div key={i} className="flex-1 rounded-[1px]" style={{ height: v ? `${12 + (v / max) * 80}%` : "5px", background: color }} />
       ))}
     </div>
   );
@@ -39,99 +41,113 @@ export function Dashboard() {
   }, []);
 
   const daily = s?.daily?.length ? s.daily : Array.from({ length: 7 }, () => ({ day: "", requests: 0, errors: 0 }));
-  const recent = (s?.recent_models || []).map(getModel).filter(Boolean);
+  const recent = (s?.recent_models || []).map(getModel).filter((m): m is NonNullable<typeof m> => Boolean(m));
+  const money = (n: number | null | undefined) => `$${Number(n ?? 0).toFixed(2)}`;
 
   return (
-    <div className="space-y-10">
-      <section className="card grid divide-y divide-line md:grid-cols-3 md:divide-x md:divide-y-0">
-        <div className="flex gap-8 p-5">
-          <div>
-            <div className="text-sm text-muted">Credits balance</div>
-            <div className="mt-1 text-2xl font-semibold">{s ? (s.unlimited ? "Unlimited" : `$${(s.credits ?? 0).toFixed(2)}`) : "—"}</div>
+    <div className="space-y-14">
+      <section className="card grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+        <div className="flex flex-col justify-between gap-6 p-6">
+          <div className="flex gap-10">
+            <div>
+              <div className="text-muted">Credits balance</div>
+              <div className="mt-1 text-3xl font-semibold">{s ? (s.unlimited ? "∞" : money(s.credits)) : "—"}</div>
+            </div>
+            <div>
+              <div className="text-muted">Cost estimate in the last 7 days</div>
+              <div className="mt-1 text-3xl font-semibold">{s ? money(s.cost_7d) : "—"}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm text-muted">Cost in the last 7 days</div>
-            <div className="mt-1 text-2xl font-semibold">{s ? `$${Number(s.cost_7d).toFixed(2)}` : "—"}</div>
+          <div className="flex gap-2">
+            <Link href="/usage" className="btn"><CircleDollarSign size={15} /> Go to credits</Link>
+            <Link href="/usage" className="btn"><ReceiptText size={15} /> Go to usage</Link>
           </div>
         </div>
-        <div className="flex items-center gap-4 p-5">
-          <div>
-            <div className="text-sm text-muted">Requests (7 days)</div>
-            <div className="mt-1 text-2xl font-semibold">{s?.requests_7d ?? "—"}</div>
-            <Link href="/usage" className="btn mt-3">Check usage</Link>
+        <div className="flex gap-6 p-6">
+          <div className="flex flex-col justify-between">
+            <div>
+              <div className="text-muted">Requests in the last 7 days</div>
+              <div className="mt-1 text-3xl font-semibold">{s?.requests_7d ?? "—"}</div>
+            </div>
+            <Link href="/usage" className="btn mt-6 self-start">Check usage</Link>
           </div>
-          <Bars values={daily.map((d) => d.requests)} color="#7c3aed" />
+          <Dashes values={daily.map((d) => d.requests)} color="#6d4aff" />
         </div>
-        <div className="flex items-center gap-4 p-5">
-          <div>
-            <div className="text-sm text-muted">Errors (7 days)</div>
-            <div className="mt-1 text-2xl font-semibold">{s?.errors_7d ?? "—"}</div>
-            <Link href="/assets" className="btn mt-3">See requests</Link>
+        <div className="flex gap-6 p-6">
+          <div className="flex flex-col justify-between">
+            <div>
+              <div className="text-muted">Errors in the last 7 days</div>
+              <div className="mt-1 text-3xl font-semibold">{s?.errors_7d ?? "—"}</div>
+            </div>
+            <Link href="/assets" className="btn mt-6 self-start">See requests</Link>
           </div>
-          <Bars values={daily.map((d) => d.errors)} color="#f43f5e" />
+          <Dashes values={daily.map((d) => d.errors)} color="#e5484d" />
         </div>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold">Getting started</h2>
-        <p className="text-sm text-muted">Start exploring Swelt&apos;s capabilities</p>
-        <div className="card mt-4 grid divide-y divide-line md:grid-cols-3 md:divide-x md:divide-y-0">
-          <div className="space-y-4 p-5">
-            <h3 className="text-lg font-semibold">Welcome to Swelt!</h3>
-            <p className="text-sm text-muted">Your account is ready to generate content or call the API.</p>
+        <h2 className="text-3xl font-semibold tracking-tight">Getting started</h2>
+        <p className="mt-1 text-muted">Start exploring Swelt&apos;s capabilities</p>
+        <div className="card mt-6 grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+          <div className="space-y-5 p-6">
+            <div>
+              <h3 className="text-xl font-semibold">Welcome to Swelt!</h3>
+              <p className="mt-2 text-muted">Let&apos;s get your account ready to generate content or call the API.</p>
+            </div>
             <Step done label="Create an account" />
-            <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Get free starter credits" />
+            <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Get starter credits" href="/usage" cta="View credits" />
             <Step done={!!s && s.requests_7d > 0} label="Generate your first media" href="/explore" cta="Try a model" />
           </div>
-          <div className="space-y-3 p-5">
-            <h3 className="text-lg font-semibold">Start creating with Swelt</h3>
-            <p className="text-sm text-muted">Generate in the browser or call any model from code.</p>
+          <div className="space-y-5 p-6">
+            <div>
+              <h3 className="text-xl font-semibold">Start creating with Swelt</h3>
+              <p className="mt-2 text-muted">Generate in the browser or call any model from code.</p>
+            </div>
             <QuickLink href="/agent" icon={LayoutGrid} label="Generate with the Agent" />
-            <QuickLink href="/keys" icon={KeyRound} label="Get an API key" />
-            <QuickLink href="/docs" icon={Plug} label="Quickstart: call your first model" />
+            <QuickLink href="/keys" icon={KeyRound} label="Get an API Key" />
+            <QuickLink href="/docs" icon={FileText} label="Quickstart: Call your first model" />
             <QuickLink href="/docs" icon={BookOpen} label="Go to documentation" />
           </div>
-          <div className="space-y-3 p-5">
-            <h3 className="text-lg font-semibold">Recently used models</h3>
-            {recent.length ? (
-              recent.slice(0, 3).map((m) => <ModelRow key={m!.id} model={m!} />)
-            ) : (
-              <div className="flex flex-col items-center gap-2 py-6 text-center text-sm text-muted">
-                <Activity size={20} /> No models used yet.
-                <Link href="/explore" className="btn">Explore models</Link>
-              </div>
-            )}
+          <div className="space-y-5 p-6">
+            <div>
+              <h3 className="text-xl font-semibold">{recent.length ? "Recently used models" : "Explore the latest models"}</h3>
+              <p className="mt-2 text-muted">Top tools for image and video generation.</p>
+            </div>
+            {(recent.length ? recent : [getModel("google/nano-banana-2"), getModel("vidu/vidu-q3-i2v"), getModel("pruna/p-video")].filter((m): m is NonNullable<typeof m> => Boolean(m)))
+              .slice(0, 3)
+              .map((m) => <ModelRow key={m.id} model={m} />)}
+            <QuickLink href="/explore" icon={LayoutGrid} label="Explore all models" />
           </div>
         </div>
       </section>
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Latest generations</h2>
-          <Link href="/assets" className="btn">See all →</Link>
+          <h2 className="text-3xl font-semibold tracking-tight">Latest generations</h2>
+          <Link href="/assets" className="btn">See all <ArrowRight size={15} /></Link>
         </div>
         {items === null ? (
-          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer aspect-square rounded-xl" />)}
+          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer aspect-square rounded-lg" />)}
           </div>
         ) : items.length === 0 ? (
-          <div className="card mt-4 flex flex-col items-center gap-3 py-16 text-center">
-            <ImageIcon className="text-dim" />
-            <div className="font-semibold">Nothing here… yet.</div>
-            <p className="max-w-md text-sm text-muted">Start your first generation and see your creations come to life. Try the Agent or pick a model to begin.</p>
-            <div className="flex gap-2">
+          <div className="card mt-5 flex flex-col items-center gap-3 py-20 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-md bg-panel-2 text-muted"><ImageIcon size={22} /></span>
+            <div className="text-lg font-semibold">Nothing here… yet.</div>
+            <p className="max-w-md text-muted">Start your first generation and see your creations come to life. Try the Agent or pick a model to begin.</p>
+            <div className="mt-2 flex gap-2">
               <Link href="/agent" className="btn btn-primary">Try the Agent</Link>
               <Link href="/explore" className="btn">Explore models</Link>
             </div>
           </div>
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
             {items.map((g) => (
-              <Link key={g.request_id} href={`/assets?id=${g.request_id}`} className="card group overflow-hidden">
+              <Link key={g.request_id} href={`/assets?id=${g.request_id}`} className="card overflow-hidden">
                 <div className="aspect-square bg-panel-2">
                   {g.media[0] ? <Media url={g.media[0]} kind={g.kind} className="object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-dim">{g.status}</div>}
                 </div>
-                <div className="truncate px-2 py-1.5 text-xs text-muted">{g.model_id}</div>
+                <div className="truncate px-2.5 py-2 text-xs text-muted">{g.model_id}</div>
               </Link>
             ))}
           </div>
@@ -143,20 +159,20 @@ export function Dashboard() {
 
 function Step({ done, label, href, cta }: { done: boolean; label: string; href?: string; cta?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className={`flex h-7 w-7 items-center justify-center rounded-full ${done ? "bg-emerald-500/15 text-emerald-400" : "bg-panel-2"}`}>
-        {done && <Check size={15} />}
+    <div className="flex items-center gap-4">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#1f3326] text-[#4ade80]" : "bg-panel-2"}`}>
+        {done && <Check size={16} />}
       </span>
-      <span className={`flex-1 ${done ? "text-muted line-through" : ""}`}>{label}</span>
+      <span className={`flex-1 text-[17px] ${done ? "text-muted line-through" : ""}`}>{label}</span>
       {!done && href && <Link href={href} className="btn">{cta}</Link>}
     </div>
   );
 }
 
-function QuickLink({ href, icon: Icon, label }: { href: string; icon: typeof Plug; label: string }) {
+function QuickLink({ href, icon: Icon, label }: { href: string; icon: typeof BookOpen; label: string }) {
   return (
-    <Link href={href} className="flex items-center gap-3 rounded-md p-1 hover:bg-panel-2">
-      <span className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-500/15 text-violet-300"><Icon size={16} /></span>
+    <Link href={href} className="flex items-center gap-3 rounded-md text-[17px] hover:text-white">
+      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-panel-2 text-muted"><Icon size={17} strokeWidth={1.8} /></span>
       <span>{label}</span>
     </Link>
   );

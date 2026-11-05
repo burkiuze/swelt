@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
 
@@ -14,25 +16,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider
       appearance={{
         variables: {
-          colorPrimary: "#8b5cf6",
-          colorBackground: "#18181b",
-          colorForeground: "#f4f4f5",
-          colorInput: "#141417",
-          colorInputForeground: "#f4f4f5",
-          colorMutedForeground: "#a1a1aa",
-          colorNeutral: "#f4f4f5",
+          colorPrimary: "#ededed",
+          colorPrimaryForeground: "#111111",
+          colorBackground: "#1c1c1c",
+          colorForeground: "#ededed",
+          colorInput: "#151515",
+          colorInputForeground: "#ededed",
+          colorMutedForeground: "#a1a1a1",
+          colorNeutral: "#ededed",
+          borderRadius: "6px",
         },
       }}
     >
-      <html lang="en">
+      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
         <body className="min-h-screen">
           <Nav />
           <main>{children}</main>
-          <footer className="mx-auto flex max-w-[1400px] flex-wrap justify-between gap-4 px-4 py-10 text-xs text-dim sm:px-7">
-            <span>© {new Date().getFullYear()} Swelt · Models served by RunPod · Agent via OpenRouter</span>
-            <span className="flex gap-4">
+          <footer className="mx-auto mt-16 flex max-w-[1400px] flex-wrap justify-between gap-4 border-t border-line px-4 py-8 text-sm text-dim sm:px-7">
+            <span>© {new Date().getFullYear()} Swelt</span>
+            <span className="flex gap-5">
               <a href="/explore" className="hover:text-white">Models</a>
-              <a href="/docs" className="hover:text-white">API docs</a>
+              <a href="/docs" className="hover:text-white">Docs</a>
               <a href="/keys" className="hover:text-white">API keys</a>
             </span>
           </footer>

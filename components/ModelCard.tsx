@@ -1,60 +1,67 @@
 import Link from "next/link";
-import { Film, Image as ImageIcon, Type, Video } from "lucide-react";
+import { Film, Image as ImageIcon, SquareArrowOutUpRight, Type, Video } from "lucide-react";
 import type { Category, Model } from "@/lib/catalog";
 
+const ICON = { text: Type, image: ImageIcon, video: Video } as const;
+
 export function CategoryChip({ category }: { category: Category }) {
-  const [from, to] = category.split("-to-");
-  const Icon = (k: string) => (k === "text" ? Type : k === "image" ? ImageIcon : Video);
-  const From = Icon(from);
-  const To = Icon(to);
-  const color =
-    category === "text-to-image" || category === "text-to-video"
-      ? "text-violet-300 bg-violet-500/10"
-      : category === "video-to-video"
-        ? "text-lime-300 bg-lime-500/10"
-        : "text-sky-300 bg-sky-500/10";
+  const [from, to] = category.split("-to-") as (keyof typeof ICON)[];
+  const From = ICON[from];
+  const To = ICON[to];
+  const tone =
+    from === "text"
+      ? "text-[#b4a7f5] border-[#b4a7f5]/25 bg-[#b4a7f5]/5"
+      : from === "video"
+        ? "text-[#bef264] border-[#bef264]/25 bg-[#bef264]/5"
+        : "text-[#93c5fd] border-[#93c5fd]/25 bg-[#93c5fd]/5";
   return (
-    <span className={`chip ${color}`}>
-      <From size={12} />
+    <span className={`cat ${tone}`}>
+      <From size={13} strokeWidth={1.8} />
       {category}
-      <To size={12} />
+      <To size={13} strokeWidth={1.8} />
     </span>
   );
 }
 
+/** Abstract, photo-like soft blur placeholder (no text). */
 export function ModelArt({ model, className = "" }: { model: Model; className?: string }) {
   const [a, b, c] = model.gradient;
   const Icon = model.kind === "video" ? Film : ImageIcon;
   return (
     <div
-      className={`relative overflow-hidden ${className}`}
+      className={`grain relative overflow-hidden ${className}`}
       style={{
-        background: `radial-gradient(60% 80% at 20% 25%, ${a} 0%, transparent 70%), radial-gradient(70% 90% at 85% 80%, ${b} 0%, transparent 70%), linear-gradient(135deg, ${c}, ${b})`,
+        background: `radial-gradient(45% 70% at 25% 35%, ${a}cc 0%, transparent 70%), radial-gradient(55% 80% at 80% 75%, ${b}cc 0%, transparent 70%), radial-gradient(60% 60% at 60% 20%, ${a}66 0%, transparent 70%), ${c}`,
       }}
     >
-      <div className="grain absolute inset-0" />
-      <Icon className="absolute bottom-3 right-3 text-white/60" size={22} />
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 pr-10 text-2xl font-semibold tracking-tight text-white/90 drop-shadow">
-        {model.name}
-      </div>
+      <Icon className="absolute bottom-3 right-3 text-white/50" size={16} strokeWidth={1.8} />
     </div>
   );
 }
 
-export function ModelCard({ model }: { model: Model }) {
-  const [lab, ...rest] = model.id.split("/");
+export function ModelName({ id, className = "" }: { id: string; className?: string }) {
+  const [lab, ...rest] = id.split("/");
   return (
-    <Link href={`/models/${model.id}`} className="card group block overflow-hidden transition hover:border-zinc-600">
+    <span className={`truncate ${className}`}>
+      <span className="text-muted">{lab}/</span>
+      <span className="font-semibold text-white">{rest.join("/")}</span>
+    </span>
+  );
+}
+
+export function ModelCard({ model }: { model: Model }) {
+  return (
+    <Link href={`/models/${model.id}`} className="card group block overflow-hidden transition hover:border-line-2">
       <div className="relative">
-        <ModelArt model={model} className="aspect-[16/9] transition group-hover:scale-[1.02]" />
-        {model.isNew && <span className="chip absolute left-3 top-3 bg-lime-300 font-medium text-black">● new</span>}
+        <ModelArt model={model} className="aspect-[16/9]" />
+        {model.isNew && <span className="absolute left-3 top-3 rounded bg-[#d9f99d] px-1.5 py-0.5 text-xs font-medium text-black">new</span>}
       </div>
-      <div className="space-y-3 p-4">
-        <div className="truncate text-[15px]">
-          <span className="text-muted">{lab}/</span>
-          <span className="font-semibold">{rest.join("/")}</span>
+      <div className="space-y-3 p-5">
+        <div className="flex items-center gap-2 text-[17px]">
+          <ModelName id={model.id} className="min-w-0 flex-1" />
+          <SquareArrowOutUpRight size={14} className="shrink-0 text-dim" />
         </div>
-        <p className="line-clamp-2 text-sm text-muted">{model.description}</p>
+        <p className="line-clamp-2 text-[15px] leading-relaxed text-muted">{model.description}</p>
         <div className="flex flex-wrap gap-1.5">
           {model.tags.slice(0, 3).map((t) => (
             <span key={t} className="chip">
@@ -62,10 +69,7 @@ export function ModelCard({ model }: { model: Model }) {
             </span>
           ))}
         </div>
-        <div className="flex items-center justify-between">
-          <CategoryChip category={model.category} />
-          <span className="text-xs text-dim">{model.priceLabel}</span>
-        </div>
+        <CategoryChip category={model.category} />
       </div>
     </Link>
   );
@@ -73,14 +77,11 @@ export function ModelCard({ model }: { model: Model }) {
 
 export function ModelRow({ model }: { model: Model }) {
   return (
-    <Link href={`/models/${model.id}`} className="card flex overflow-hidden transition hover:border-zinc-600">
-      <ModelArt model={{ ...model, name: "" }} className="w-24 shrink-0 sm:w-28" />
-      <div className="min-w-0 space-y-2 p-3">
-        <div className="truncate text-sm">
-          <span className="text-muted">{model.lab}/</span>
-          <span className="font-semibold">{model.id.split("/").slice(1).join("/")}</span>
-        </div>
-        <CategoryChip category={model.category} />
+    <Link href={`/models/${model.id}`} className="flex items-center gap-3 rounded-md p-1.5 hover:bg-panel-2">
+      <ModelArt model={model} className="h-11 w-11 shrink-0 rounded-md" />
+      <div className="min-w-0">
+        <ModelName id={model.id} className="block text-[15px]" />
+        <div className="truncate text-xs text-dim">{model.description}</div>
       </div>
     </Link>
   );

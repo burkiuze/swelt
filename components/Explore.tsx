@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronRight, Search } from "lucide-react";
 import { LABS, MODELS, type Model } from "@/lib/catalog";
 import { ModelCard } from "./ModelCard";
 
@@ -19,9 +19,11 @@ function Section({ title, subtitle, models }: { title: string; subtitle?: string
   if (!models.length) return null;
   return (
     <section>
-      <h2 className="text-2xl font-semibold sm:text-3xl">{title}</h2>
-      {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <h2 className="flex items-center gap-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+        {title} <ChevronRight size={26} className="text-muted" />
+      </h2>
+      {subtitle && <p className="mt-2 text-lg text-muted">{subtitle}</p>}
+      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {models.map((m) => (
           <ModelCard key={m.id} model={m} />
         ))}
@@ -34,6 +36,10 @@ export function Explore() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("all");
   const [lab, setLab] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("focus")) searchRef.current?.focus();
+  }, []);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -48,15 +54,15 @@ export function Explore() {
   const browsing = !q && tab === "all" && !lab;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-16">
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dim" size={18} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models, e.g. “image editing”, “video with audio”…" className="input py-3 pl-10 text-base" />
+          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models, e.g. “image editing”, “video with audio”…" className="input h-12 pl-10 text-base" />
         </div>
         <div className="scrollbar-none flex gap-2 overflow-x-auto">
           {TABS.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)} className={`btn shrink-0 ${tab === t.key ? "bg-panel-2 text-white" : "text-muted"}`}>
+            <button key={t.key} onClick={() => setTab(t.key)} className={`btn shrink-0 ${tab === t.key ? "border-[#ededed] bg-[#ededed] text-black hover:bg-[#d4d4d4]" : "text-muted"}`}>
               {t.label}
             </button>
           ))}
@@ -68,7 +74,7 @@ export function Explore() {
         <p className="text-sm text-muted">Explore the AI labs powering models on Swelt</p>
         <div className="scrollbar-none mt-3 flex gap-2 overflow-x-auto">
           {LABS.map((l) => (
-            <button key={l} onClick={() => setLab(lab === l ? null : l)} className={`card shrink-0 px-4 py-3 text-sm ${lab === l ? "border-violet-400" : ""}`}>
+            <button key={l} onClick={() => setLab(lab === l ? null : l)} className={`card shrink-0 px-4 py-3 text-sm ${lab === l ? "border-[#6b6b6b] bg-panel-2" : ""}`}>
               <div className="font-semibold">{l}</div>
               <div className="text-xs text-dim">{MODELS.filter((m) => m.lab === l).length} models</div>
             </button>

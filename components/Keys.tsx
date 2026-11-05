@@ -40,11 +40,11 @@ export function Keys() {
       <div className="card flex flex-wrap gap-2 p-4">
         <input className="input max-w-sm flex-1" placeholder="Key name, e.g. production" value={name} onChange={(e) => setName(e.target.value)} />
         <button className="btn btn-primary" onClick={create}><KeyRound size={14} /> Create key</button>
-        {err && <span className="text-sm text-rose-300">{err}</span>}
+        {err && <span className="text-sm text-[#ff9592]">{err}</span>}
       </div>
       {fresh && (
-        <div className="card space-y-2 border-emerald-500/40 p-4">
-          <div className="text-sm font-medium text-emerald-300">Copy your key now — it won&apos;t be shown again.</div>
+        <div className="card space-y-2 p-4">
+          <div className="text-sm font-medium">Copy your key now — it won&apos;t be shown again.</div>
           <div className="flex gap-2">
             <code className="input overflow-x-auto whitespace-nowrap font-mono">{fresh}</code>
             <button className="btn" onClick={() => { navigator.clipboard.writeText(fresh); setCopied(true); }}>

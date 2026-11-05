@@ -139,7 +139,7 @@ console.log(job.media); // array of ${model.kind} URLs`;
             {model.tags.map((t) => (
               <span key={t} className="chip">{t}</span>
             ))}
-            <span className="chip bg-emerald-500/10 text-emerald-300">{model.priceLabel}</span>
+            <span className="chip">{model.priceLabel}</span>
           </div>
         </div>
         <div className="flex rounded-lg border border-line p-1">
@@ -212,7 +212,7 @@ console.log(job.media); // array of ${model.kind} URLs`;
                 <div className="text-sm text-dim">Your {model.kind} will appear here.</div>
               )}
             </div>
-            {error && <div className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</div>}
+            {error && <div className="mt-3 rounded-md border border-[#e5484d]/30 bg-[#e5484d]/10 p-3 text-sm text-[#ff9592]">{error}</div>}
             {media[0] && <div className="mt-3"><MediaActions url={media[0]} /></div>}
             {job && FINAL.includes(job.status) && (
               <details className="mt-3 text-sm">
@@ -228,7 +228,7 @@ console.log(job.media); // array of ${model.kind} URLs`;
             <h2 className="font-semibold">cURL</h2>
             <CodeBlock code={curl} />
             <p className="text-sm text-muted">
-              Create a key on the <a href="/keys" className="text-violet-300 underline">API Keys</a> page. Requests are async: submit, then poll the request until it is <code>COMPLETED</code>.
+              Create a key on the <a href="/keys" className="text-white underline underline-offset-2">API Keys</a> page. Requests are async: submit, then poll the request until it is <code>COMPLETED</code>.
             </p>
           </div>
           <div className="space-y-3">
@@ -247,7 +247,7 @@ console.log(job.media); // array of ${model.kind} URLs`;
                 <tbody>
                   {model.fields.map((f) => (
                     <tr key={f.name} className="border-b border-line last:border-0">
-                      <td className="p-3 font-mono">{f.name}{f.required && <span className="text-rose-400">*</span>}</td>
+                      <td className="p-3 font-mono">{f.name}{f.required && <span className="text-[#ff9592]">*</span>}</td>
                       <td className="p-3 text-muted">{f.type === "images" ? "string[] (URLs)" : f.type === "image" ? "string (URL)" : f.type === "seed" ? "integer" : f.type}</td>
                       <td className="p-3 text-muted">{f.default === undefined || f.default === "" ? "—" : String(f.default)}</td>
                       <td className="p-3 text-muted">{f.options?.join(", ") || (f.min !== undefined ? `${f.min}–${f.max}` : "—")}</td>

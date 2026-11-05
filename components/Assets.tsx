@@ -55,7 +55,7 @@ export function Assets() {
                 {g.media[0] ? (
                   <Media url={g.media[0]} kind={g.kind} className="object-cover" />
                 ) : (
-                  <span className={`px-2 text-center text-xs ${g.status === "FAILED" ? "text-rose-300" : "text-dim"}`}>{g.status}</span>
+                  <span className={`px-2 text-center text-xs ${g.status === "FAILED" ? "text-[#ff9592]" : "text-dim"}`}>{g.status}</span>
                 )}
               </div>
               <div className="flex items-center justify-between gap-2 px-2.5 py-2 text-xs">

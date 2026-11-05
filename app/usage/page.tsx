@@ -39,7 +39,7 @@ export default async function Page() {
                 <td className="p-3 text-muted">{new Date(r.created_at).toLocaleString()}</td>
                 <td className="p-3">{r.model_id}</td>
                 <td className="p-3 text-muted">{r.source}</td>
-                <td className={`p-3 ${r.status === "FAILED" ? "text-rose-300" : r.status === "COMPLETED" ? "text-emerald-300" : "text-muted"}`} title={r.error ?? ""}>{r.status}</td>
+                <td className={`p-3 ${r.status === "FAILED" ? "text-[#ff9592]" : r.status === "COMPLETED" ? "text-[#4ade80]" : "text-muted"}`} title={r.error ?? ""}>{r.status}</td>
                 <td className="p-3 text-right">${Number(r.cost).toFixed(4)}</td>
               </tr>
             ))}

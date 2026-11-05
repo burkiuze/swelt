@@ -2,59 +2,59 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowUp, Brain, Hand, ImageIcon, Plus } from "lucide-react";
+import { ArrowUp, BrainCircuit, Hand, ImageIcon, Plus, TextQuote } from "lucide-react";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 
 export type AgentPrefs = { llm: LlmKey; effort: Effort; approval: boolean };
 
+const sel = "cursor-pointer appearance-none bg-transparent outline-none";
+
 export function AgentControls({ prefs, onChange }: { prefs: AgentPrefs; onChange: (p: AgentPrefs) => void }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
       <button
         type="button"
         onClick={() => onChange({ ...prefs, approval: !prefs.approval })}
-        className={`flex items-center gap-1.5 rounded-md px-2 py-1 ${prefs.approval ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}
+        className={`flex items-center gap-1.5 ${prefs.approval ? "text-white" : "text-muted hover:text-white"}`}
         title="When on, the agent proposes model runs and waits for your approval"
       >
-        <Hand size={15} /> {prefs.approval ? "Ask for approval" : "Auto-run"}
+        <Hand size={16} strokeWidth={1.8} /> {prefs.approval ? "Ask for approval" : "Auto-run"}
       </button>
       <span className="flex-1" />
-      <label className="flex items-center gap-1.5 text-muted">
-        <Brain size={15} />
-        <select
-          value={prefs.llm}
-          onChange={(e) => onChange({ ...prefs, llm: e.target.value as LlmKey })}
-          className="cursor-pointer bg-transparent font-medium text-white outline-none"
-        >
+      <span className="flex items-center gap-1.5 text-muted">
+        <BrainCircuit size={16} strokeWidth={1.8} />
+        <select value={prefs.llm} onChange={(e) => onChange({ ...prefs, llm: e.target.value as LlmKey })} className={`${sel} font-semibold text-white`}>
           {LLMS.map((l) => (
             <option key={l.key} value={l.key} className="bg-panel">
               {l.label}
             </option>
           ))}
         </select>
-        <select
-          value={prefs.effort}
-          onChange={(e) => onChange({ ...prefs, effort: e.target.value as Effort })}
-          className="cursor-pointer bg-transparent capitalize outline-none"
-        >
+        <select value={prefs.effort} onChange={(e) => onChange({ ...prefs, effort: e.target.value as Effort })} className={`${sel} capitalize`}>
           {EFFORTS.map((e) => (
             <option key={e} value={e} className="bg-panel capitalize">
-              {e}
+              {e[0].toUpperCase() + e.slice(1)}
             </option>
           ))}
         </select>
-      </label>
+      </span>
       <span className="flex items-center gap-1.5 text-muted">
-        <ImageIcon size={15} /> <span className="font-medium text-white">Media</span> RunPod
+        <ImageIcon size={16} strokeWidth={1.8} /> <span className="font-semibold text-white">Media</span> RunPod
       </span>
     </div>
   );
 }
 
+const IDEAS = [
+  { label: "Create different game environments from one concept", q: "Create 3 different game environment concepts (forest, snowy mountains, desert ruins) for the same stylized fantasy world, then animate the best one.", g: ["#7c9a5b", "#cbd5e1", "#3f3f46"] },
+  { label: "Create a polished campaign image for a perfume", q: "Create a polished, premium campaign image for a minimalist perfume bottle on golden silk, soft studio light.", g: ["#d4a256", "#7c5320", "#1c1917"] },
+  { label: "Create product images from different camera angles", q: "Create product images of a glass water bottle from 3 different camera angles on a clean studio background.", g: ["#94a3b8", "#334155", "#0f172a"] },
+];
+
 export function PromptBox() {
   const router = useRouter();
   const [text, setText] = useState("");
-  const [prefs, setPrefs] = useState<AgentPrefs>({ llm: "opus", effort: "medium", approval: false });
+  const [prefs, setPrefs] = useState<AgentPrefs>({ llm: "opus", effort: "medium", approval: true });
 
   const go = (q = text) => {
     if (!q.trim()) return;
@@ -63,9 +63,12 @@ export function PromptBox() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
-      <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-2xl shadow-black/40">
-        <div className="flex items-start gap-3 p-3">
+    <div className="mx-auto w-full max-w-[1300px]">
+      <div className="overflow-hidden rounded-lg border border-line bg-panel">
+        <div className="flex items-center gap-3 p-3">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-[#141414] text-muted">
+            <TextQuote size={20} strokeWidth={1.8} />
+          </span>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -75,29 +78,29 @@ export function PromptBox() {
                 go();
               }
             }}
-            rows={2}
+            rows={1}
             placeholder="Describe what you want to generate…"
-            className="min-h-[52px] flex-1 resize-none bg-transparent px-2 py-2 text-[15px] outline-none placeholder:text-dim"
+            className="flex-1 resize-none bg-transparent py-3 text-lg outline-none placeholder:text-dim"
           />
-          <button onClick={() => go()} disabled={!text.trim()} className="btn btn-primary h-10 w-10 justify-center p-0" aria-label="Send">
-            <ArrowUp size={18} />
+          <button onClick={() => go()} disabled={!text.trim()} className="flex h-12 w-12 items-center justify-center rounded-md bg-[#2a2a2a] text-white transition hover:bg-[#333] disabled:text-dim" aria-label="Send">
+            <ArrowUp size={20} />
           </button>
         </div>
-        <div className="flex items-center gap-2 border-t border-line px-3 py-2">
-          <Plus size={16} className="text-dim" />
+        <div className="flex items-center gap-4 border-t border-line px-4 py-2.5">
+          <Plus size={18} className="text-dim" />
           <div className="flex-1">
             <AgentControls prefs={prefs} onChange={setPrefs} />
           </div>
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {[
-          ["Create different game environments from one concept", "Create 3 different game environment concepts (forest, snowy mountains, desert ruins) for the same stylized fantasy world, then animate the best one."],
-          ["Create a polished campaign image for a perfume", "Create a polished, premium campaign image for a minimalist perfume bottle on golden silk, soft studio light."],
-          ["Product shots from different camera angles", "Create product images of a glass water bottle from 3 different camera angles on a clean studio background."],
-        ].map(([label, q]) => (
-          <button key={label} onClick={() => go(q)} className="card p-3 text-left text-sm font-medium hover:border-zinc-600">
-            {label}
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+        {IDEAS.map((i) => (
+          <button key={i.label} onClick={() => go(i.q)} className="card flex items-center gap-4 overflow-hidden text-left transition hover:border-line-2">
+            <span
+              className="grain h-20 w-24 shrink-0"
+              style={{ background: `radial-gradient(60% 70% at 30% 30%, ${i.g[0]} 0%, transparent 70%), radial-gradient(60% 70% at 80% 80%, ${i.g[1]} 0%, transparent 70%), ${i.g[2]}` }}
+            />
+            <span className="pr-4 text-[17px] font-semibold leading-snug">{i.label}</span>
           </button>
         ))}
       </div>
