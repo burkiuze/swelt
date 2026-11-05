@@ -7,7 +7,7 @@ export const revalidate = 60;
 export default async function Page() {
   const previews = await getPreviews();
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-7">
+    <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
       <Explore previews={previews} />
     </div>
   );

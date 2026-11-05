@@ -16,9 +16,9 @@ export function CategoryChip({ category }: { category: Category }) {
         : "text-[#93c5fd] border-[#93c5fd]/25 bg-[#93c5fd]/5";
   return (
     <span className={`cat ${tone}`}>
-      <From size={13} strokeWidth={1.8} />
+      <From size={12} strokeWidth={1.8} />
       {category}
-      <To size={13} strokeWidth={1.8} />
+      <To size={12} strokeWidth={1.8} />
     </span>
   );
 }
@@ -71,14 +71,14 @@ export function ModelCard({ model, preview }: { model: Model; preview?: Preview 
     <Link href={`/models/${model.id}`} className="card group block overflow-hidden transition hover:border-line-2">
       <div className="relative">
         <ModelThumb model={model} preview={preview} className="aspect-[16/9]" />
-        {model.isNew && <span className="absolute left-3 top-3 rounded bg-[#d9f99d] px-1.5 py-0.5 text-xs font-medium text-black">new</span>}
+        {model.isNew && <span className="absolute left-3 top-3 rounded bg-[#d9f99d] px-1.5 py-0.5 text-[11px] font-medium text-black">new</span>}
       </div>
-      <div className="space-y-3 p-5">
-        <div className="flex items-center gap-2 text-[17px]">
+      <div className="space-y-2.5 p-4">
+        <div className="flex items-center gap-2 text-[15px]">
           <ModelName id={model.id} className="min-w-0 flex-1" />
-          <SquareArrowOutUpRight size={14} className="shrink-0 text-dim" />
+          <SquareArrowOutUpRight size={13} className="shrink-0 text-dim" />
         </div>
-        <p className="line-clamp-2 text-[15px] leading-relaxed text-muted">{model.description}</p>
+        <p className="line-clamp-2 text-[13px] leading-relaxed text-muted">{model.description}</p>
         <div className="flex flex-wrap gap-1.5">
           {model.tags.slice(0, 3).map((t) => (
             <span key={t} className="chip">
@@ -97,7 +97,7 @@ export function ModelRow({ model, preview }: { model: Model; preview?: Preview |
     <Link href={`/models/${model.id}`} className="flex items-center gap-3 rounded-md p-1.5 hover:bg-panel-2">
       <ModelThumb model={model} preview={preview} className="h-11 w-11 shrink-0 rounded-md" />
       <div className="min-w-0">
-        <ModelName id={model.id} className="block text-[15px]" />
+        <ModelName id={model.id} className="block text-sm" />
         <div className="truncate text-xs text-dim">{model.description}</div>
       </div>
     </Link>

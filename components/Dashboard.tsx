@@ -23,7 +23,7 @@ function Dashes({ values, color }: { values: number[]; color: string }) {
   const max = Math.max(1, ...values);
   const segs = values.flatMap((v) => [v, v, v]);
   return (
-    <div className="flex h-24 flex-1 items-end gap-[3px] rounded-md bg-[#232323] p-2.5">
+    <div className="flex h-20 flex-1 items-end gap-[3px] rounded-md bg-[#232323] p-2">
       {segs.map((v, i) => (
         <div key={i} className="flex-1 rounded-[1px]" style={{ height: v ? `${12 + (v / max) * 80}%` : "5px", background: color }} />
       ))}
@@ -47,15 +47,15 @@ export function Dashboard() {
   return (
     <div className="space-y-14">
       <section className="card grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-        <div className="flex flex-col justify-between gap-6 p-6">
+        <div className="flex flex-col justify-between gap-6 p-5">
           <div className="flex gap-10">
             <div>
-              <div className="text-muted">Credits balance</div>
-              <div className="mt-1 text-3xl font-semibold">{s ? (s.unlimited ? "∞" : money(s.credits)) : "—"}</div>
+              <div className="text-sm text-muted">Credits balance</div>
+              <div className="mt-1 text-2xl font-semibold">{s ? (s.unlimited ? "∞" : money(s.credits)) : "—"}</div>
             </div>
             <div>
-              <div className="text-muted">Cost estimate in the last 7 days</div>
-              <div className="mt-1 text-3xl font-semibold">{s ? money(s.cost_7d) : "—"}</div>
+              <div className="text-sm text-muted">Cost estimate in the last 7 days</div>
+              <div className="mt-1 text-2xl font-semibold">{s ? money(s.cost_7d) : "—"}</div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -63,21 +63,21 @@ export function Dashboard() {
             <Link href="/usage" className="btn"><ReceiptText size={15} /> Go to usage</Link>
           </div>
         </div>
-        <div className="flex gap-6 p-6">
+        <div className="flex gap-6 p-5">
           <div className="flex flex-col justify-between">
             <div>
-              <div className="text-muted">Requests in the last 7 days</div>
-              <div className="mt-1 text-3xl font-semibold">{s?.requests_7d ?? "—"}</div>
+              <div className="text-sm text-muted">Requests in the last 7 days</div>
+              <div className="mt-1 text-2xl font-semibold">{s?.requests_7d ?? "—"}</div>
             </div>
             <Link href="/usage" className="btn mt-6 self-start">Check usage</Link>
           </div>
           <Dashes values={daily.map((d) => d.requests)} color="#6d4aff" />
         </div>
-        <div className="flex gap-6 p-6">
+        <div className="flex gap-6 p-5">
           <div className="flex flex-col justify-between">
             <div>
-              <div className="text-muted">Errors in the last 7 days</div>
-              <div className="mt-1 text-3xl font-semibold">{s?.errors_7d ?? "—"}</div>
+              <div className="text-sm text-muted">Errors in the last 7 days</div>
+              <div className="mt-1 text-2xl font-semibold">{s?.errors_7d ?? "—"}</div>
             </div>
             <Link href="/assets" className="btn mt-6 self-start">See requests</Link>
           </div>
@@ -86,32 +86,32 @@ export function Dashboard() {
       </section>
 
       <section>
-        <h2 className="text-3xl font-semibold tracking-tight">Getting started</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Getting started</h2>
         <p className="mt-1 text-muted">Start exploring Swelt&apos;s capabilities</p>
         <div className="card mt-6 grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-          <div className="space-y-5 p-6">
+          <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-xl font-semibold">Welcome to Swelt!</h3>
-              <p className="mt-2 text-muted">Let&apos;s get your account ready to generate content or call the API.</p>
+              <h3 className="text-base font-semibold">Welcome to Swelt!</h3>
+              <p className="mt-1 text-sm text-muted">Let&apos;s get your account ready to generate content or call the API.</p>
             </div>
             <Step done label="Create an account" />
             <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Get starter credits" href="/usage" cta="View credits" />
             <Step done={!!s && s.requests_7d > 0} label="Generate your first media" href="/explore" cta="Try a model" />
           </div>
-          <div className="space-y-5 p-6">
+          <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-xl font-semibold">Start creating with Swelt</h3>
-              <p className="mt-2 text-muted">Generate in the browser or call any model from code.</p>
+              <h3 className="text-base font-semibold">Start creating with Swelt</h3>
+              <p className="mt-1 text-sm text-muted">Generate in the browser or call any model from code.</p>
             </div>
             <QuickLink href="/agent" icon={LayoutGrid} label="Generate with the Agent" />
             <QuickLink href="/keys" icon={KeyRound} label="Get an API Key" />
             <QuickLink href="/docs" icon={FileText} label="Quickstart: Call your first model" />
             <QuickLink href="/docs" icon={BookOpen} label="Go to documentation" />
           </div>
-          <div className="space-y-5 p-6">
+          <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-xl font-semibold">{recent.length ? "Recently used models" : "Explore the latest models"}</h3>
-              <p className="mt-2 text-muted">Top tools for image and video generation.</p>
+              <h3 className="text-base font-semibold">{recent.length ? "Recently used models" : "Explore the latest models"}</h3>
+              <p className="mt-1 text-sm text-muted">Top tools for image and video generation.</p>
             </div>
             {(recent.length ? recent : [getModel("google/nano-banana-2"), getModel("vidu/vidu-q3-i2v"), getModel("pruna/p-video")].filter((m): m is NonNullable<typeof m> => Boolean(m)))
               .slice(0, 3)
@@ -123,7 +123,7 @@ export function Dashboard() {
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-semibold tracking-tight">Latest generations</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Latest generations</h2>
           <Link href="/assets" className="btn">See all <ArrowRight size={15} /></Link>
         </div>
         {items === null ? (
@@ -160,10 +160,10 @@ export function Dashboard() {
 function Step({ done, label, href, cta }: { done: boolean; label: string; href?: string; cta?: string }) {
   return (
     <div className="flex items-center gap-4">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#1f3326] text-[#4ade80]" : "bg-panel-2"}`}>
+      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#1f3326] text-[#4ade80]" : "bg-panel-2"}`}>
         {done && <Check size={16} />}
       </span>
-      <span className={`flex-1 text-[17px] ${done ? "text-muted line-through" : ""}`}>{label}</span>
+      <span className={`flex-1 text-sm ${done ? "text-muted line-through" : ""}`}>{label}</span>
       {!done && href && <Link href={href} className="btn">{cta}</Link>}
     </div>
   );
@@ -171,8 +171,8 @@ function Step({ done, label, href, cta }: { done: boolean; label: string; href?:
 
 function QuickLink({ href, icon: Icon, label }: { href: string; icon: typeof BookOpen; label: string }) {
   return (
-    <Link href={href} className="flex items-center gap-3 rounded-md text-[17px] hover:text-white">
-      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-panel-2 text-muted"><Icon size={17} strokeWidth={1.8} /></span>
+    <Link href={href} className="flex items-center gap-3 rounded-md text-sm hover:text-white">
+      <span className="flex h-7 w-7 items-center justify-center rounded-md bg-panel-2 text-muted"><Icon size={15} strokeWidth={1.8} /></span>
       <span>{label}</span>
     </Link>
   );

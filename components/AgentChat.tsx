@@ -63,7 +63,7 @@ function Steps({ steps, ms }: { steps: Step[]; ms: number }) {
   const [open, setOpen] = useState(true);
   const [detail, setDetail] = useState<number | null>(null);
   return (
-    <div className="text-sm">
+    <div className="text-[13px]">
       <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1 text-muted hover:text-white">
         Worked for {secs(ms)} <ChevronDown size={14} className={open ? "" : "-rotate-90"} />
       </button>
@@ -98,7 +98,7 @@ function MediaTile({ job, onOpen }: { job: JobView; onOpen: (u: string, kind: st
   const url = job.media[0];
   if (url)
     return (
-      <button onClick={() => onOpen(url, job.kind)} className="h-60 shrink-0 overflow-hidden rounded-md bg-[#141414]">
+      <button onClick={() => onOpen(url, job.kind)} className="h-44 shrink-0 overflow-hidden rounded-md bg-[#141414]">
         {job.kind === "video" ? (
           <video src={url} autoPlay muted loop playsInline className="h-full w-auto" />
         ) : (
@@ -108,7 +108,7 @@ function MediaTile({ job, onOpen }: { job: JobView; onOpen: (u: string, kind: st
       </button>
     );
   return (
-    <div className={`flex h-60 w-60 shrink-0 flex-col items-center justify-center gap-2 rounded-md p-3 text-center text-xs ${job.status === "FAILED" ? "border border-[#e5484d]/30 bg-[#e5484d]/5 text-[#ff9592]" : "shimmer text-muted"}`}>
+    <div className={`flex h-44 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-md p-3 text-center text-xs ${job.status === "FAILED" ? "border border-[#e5484d]/30 bg-[#e5484d]/5 text-[#ff9592]" : "shimmer text-muted"}`}>
       {job.status === "FAILED" ? (
         <span className="line-clamp-5">{job.error || "Failed"}</span>
       ) : (
@@ -315,10 +315,10 @@ export function AgentChat() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-6.25rem)] overflow-hidden">
+    <div className="flex h-[calc(100dvh-5.5rem)] overflow-hidden">
       {/* ---------- chat column ---------- */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-line px-4">
+        <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-4 text-sm">
           <span className="min-w-0 flex-1 truncate font-medium">{title}</span>
           <a href="/agent" className="btn h-8">
             <Plus size={14} /> New
@@ -329,10 +329,10 @@ export function AgentChat() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[880px] space-y-8 px-4 py-6 text-[15px]">
+          <div className="mx-auto max-w-[760px] space-y-6 px-4 py-5 text-sm">
             {msgs.length === 0 && !busy && (
               <div className="py-20 text-center">
-                <h1 className="text-2xl font-semibold tracking-tight">What do you want to create?</h1>
+                <h1 className="text-xl font-semibold tracking-tight">What do you want to create?</h1>
                 <p className="mt-1.5 text-sm text-muted">The Agent picks models, writes prompts and runs them on RunPod for you.</p>
               </div>
             )}
@@ -343,14 +343,14 @@ export function AgentChat() {
                   {m.attachments && m.attachments.length > 0 && (
                     <div className="flex gap-2">
                       {m.attachments.map((u) => (
-                        <button key={u} onClick={() => setLightbox({ url: u, kind: "image" })} className="h-40 overflow-hidden rounded-md border border-line bg-white">
+                        <button key={u} onClick={() => setLightbox({ url: u, kind: "image" })} className="h-28 overflow-hidden rounded-md border border-line bg-white">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={u} alt="" className="h-full w-auto" />
                         </button>
                       ))}
                     </div>
                   )}
-                  {m.content && <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-panel-2 px-4 py-2.5">{m.content}</div>}
+                  {m.content && <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-panel-2 px-3 py-2">{m.content}</div>}
                   <div className="flex items-center gap-2 text-xs text-dim">
                     {new Date(m.at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                     <button onClick={() => navigator.clipboard.writeText(m.content)} className="hover:text-white" title="Copy">
@@ -395,8 +395,8 @@ export function AgentChat() {
         </div>
 
         {/* ---------- composer ---------- */}
-        <div className="shrink-0 px-4 pb-4">
-          <div className="mx-auto max-w-[880px] rounded-lg border border-line bg-panel">
+        <div className="shrink-0 px-4 pb-3">
+          <div className="mx-auto max-w-[760px] rounded-lg border border-line bg-panel">
             {attachments.length > 0 && (
               <div className="flex gap-2 px-3 pt-3">
                 {attachments.map((u, k) => (
@@ -425,7 +425,7 @@ export function AgentChat() {
                 }}
                 rows={1}
                 placeholder={suggestion || (msgs.length ? "Ask for changes, variations, or animate a result…" : "Describe what you want to generate…")}
-                className="max-h-32 min-h-9 flex-1 resize-none bg-transparent py-1.5 outline-none placeholder:text-dim"
+                className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-dim"
               />
               {suggestion && !text && <span className="mb-2 hidden shrink-0 rounded border border-line-2 px-1.5 text-[11px] text-dim sm:inline">Tab to use</span>}
               <button
@@ -437,7 +437,7 @@ export function AgentChat() {
                 {busy ? <Loader2 size={15} className="animate-spin" /> : <ArrowUp size={16} />}
               </button>
             </div>
-            <div className="flex items-center gap-1 px-2 pb-2 text-sm">
+            <div className="flex items-center gap-1 px-2 pb-1.5 text-[13px]">
               <input
                 ref={fileRef}
                 type="file"
@@ -486,8 +486,8 @@ export function AgentChat() {
 
       {/* ---------- media panel ---------- */}
       {panel && (
-        <aside className="hidden w-[400px] shrink-0 flex-col border-l border-line lg:flex">
-          <div className="flex h-12 items-center gap-1 border-b border-line px-3 text-sm">
+        <aside className="hidden w-[320px] shrink-0 flex-col border-l border-line lg:flex">
+          <div className="flex h-10 items-center gap-1 border-b border-line px-3 text-[13px]">
             <span className="flex items-center gap-1.5 rounded-md bg-panel-2 px-2.5 py-1 font-medium">
               <ImageIcon size={14} /> Media
             </span>

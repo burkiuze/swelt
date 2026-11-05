@@ -52,15 +52,15 @@ export function Nav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-4 sm:px-7">
-        <Link href="/" className="flex shrink-0 items-center gap-1.5 text-[22px] font-bold tracking-tight">
-          <Logo />
+      <div className="mx-auto flex h-12 max-w-[1400px] items-center gap-3 px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-1.5 text-lg font-bold tracking-tight">
+          <Logo size={22} />
           swelt
         </Link>
-        {current && <span className="hidden text-muted sm:inline">/&nbsp;&nbsp;{current}</span>}
+        {current && <span className="hidden text-sm text-muted sm:inline">/&nbsp;&nbsp;{current}</span>}
         <span className="flex-1" />
-        <Link href="/explore?focus=1" className="hidden h-9 w-64 items-center gap-2 rounded-md border border-line-2 px-3 text-sm text-muted hover:bg-panel-2 md:flex">
-          <Search size={15} />
+        <Link href="/explore?focus=1" className="hidden h-8 w-56 items-center gap-2 rounded-md border border-line-2 px-2.5 text-[13px] text-muted hover:bg-panel-2 md:flex">
+          <Search size={14} />
           <span className="flex-1">Search anything…</span>
           <kbd className="rounded bg-panel-2 px-1.5 py-0.5 font-mono text-[11px] text-muted">CTRL K</kbd>
         </Link>
@@ -79,18 +79,18 @@ export function Nav() {
           </SignInButton>
         </Show>
       </div>
-      <nav className="scrollbar-none mx-auto flex max-w-[1400px] gap-1 overflow-x-auto px-2 sm:px-5">
+      <nav className="scrollbar-none mx-auto flex max-w-[1400px] gap-0.5 overflow-x-auto px-2 sm:px-4">
         {[...LINKS, ...(me?.unlimited ? [{ href: "/previews", label: "Previews", icon: Film }] : [])].map(({ href, label, icon: Icon }) => {
           const active = isActive(path, href);
           return (
             <Link
               key={href}
               href={href}
-              className={`relative flex shrink-0 items-center gap-1.5 px-2.5 pb-2.5 pt-1 text-[15px] font-medium transition ${
+              className={`relative flex shrink-0 items-center gap-1.5 px-2.5 pb-2 pt-0.5 text-sm font-medium transition ${
                 active ? "text-white" : "text-muted hover:text-white"
               }`}
             >
-              <Icon size={16} strokeWidth={1.8} />
+              <Icon size={15} strokeWidth={1.8} />
               {label}
               {active && <span className="absolute inset-x-1.5 bottom-0 h-0.5 rounded-full bg-white" />}
             </Link>

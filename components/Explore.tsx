@@ -19,11 +19,11 @@ function Section({ title, subtitle, models, previews }: { title: string; subtitl
   if (!models.length) return null;
   return (
     <section>
-      <h2 className="flex items-center gap-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-        {title} <ChevronRight size={26} className="text-muted" />
+      <h2 className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight sm:text-[28px]">
+        {title} <ChevronRight size={22} className="text-muted" />
       </h2>
-      {subtitle && <p className="mt-2 text-lg text-muted">{subtitle}</p>}
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {models.map((m) => (
           <ModelCard key={m.id} model={m} preview={previews[m.id]} />
         ))}
@@ -55,8 +55,8 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
   const labs = (
     <section>
-      <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Model Labs</h2>
-      <p className="mt-2 text-lg text-muted">Explore the AI labs powering models on Swelt</p>
+      <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">Model Labs</h2>
+      <p className="mt-1 text-sm text-muted">Explore the AI labs powering models on Swelt</p>
       <div className="scrollbar-none mt-6 flex gap-3 overflow-x-auto">
         {LABS.map((l) => (
           <button
@@ -76,18 +76,18 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
   );
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-12">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dim" size={15} />
-          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models" className="input h-9 pl-9" />
+          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models" className="input h-8 pl-8" />
         </div>
         <div className="scrollbar-none flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`h-9 shrink-0 rounded-md px-3 text-sm font-medium transition ${tab === t.key ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}
+              className={`h-8 shrink-0 rounded-md px-2.5 text-[13px] font-medium transition ${tab === t.key ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}
             >
               {t.label}
             </button>

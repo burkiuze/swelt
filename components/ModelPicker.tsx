@@ -48,9 +48,9 @@ export function ModelPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition ${open ? "bg-panel-2" : "hover:bg-panel-2"}`}
+        className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] transition ${open ? "bg-panel-2" : "hover:bg-panel-2"}`}
       >
-        <BrainCircuit size={15} strokeWidth={1.8} className="text-muted" />
+        <BrainCircuit size={14} strokeWidth={1.8} className="text-muted" />
         <span className="font-semibold">{current.label}</span>
         <span className="capitalize text-muted">{effort}</span>
         <ChevronDown size={14} className={`text-dim transition ${open ? "rotate-180" : ""}`} />
