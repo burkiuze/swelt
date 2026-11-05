@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { signOutAction } from "@/app/actions";
 import { BookOpen, Film, FolderOpen, House, KeyRound, LayoutGrid, Search, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 
@@ -24,7 +24,7 @@ function isActive(path: string, href: string) {
 export function Nav() {
   const path = usePathname();
   const router = useRouter();
-  const [me, setMe] = useState<{ signedIn: boolean; credits: number | null; unlimited?: boolean } | null>(null);
+  const [me, setMe] = useState<{ signedIn: boolean; credits: number | null; unlimited?: boolean; email?: string } | null>(null);
 
   useEffect(() => {
     const load = () =>
@@ -48,6 +48,7 @@ export function Nav() {
     return () => window.removeEventListener("keydown", onKey);
   }, [router]);
 
+  if (path.startsWith("/login")) return null;
   const current = LINKS.find((l) => isActive(path, l.href))?.label ?? "";
 
   return (
@@ -64,20 +65,19 @@ export function Nav() {
           <span className="flex-1">Search anything…</span>
           <kbd className="rounded bg-panel-2 px-1.5 py-0.5 font-mono text-[11px] text-muted">CTRL K</kbd>
         </Link>
-        <Show when="signed-in">
-          {me?.signedIn && (
+        {me?.signedIn ? (
+          <>
             <Link href="/usage" className="btn">
               <span className="text-muted">Credits:</span>
               {me.unlimited ? "Unlimited" : `$${(me.credits ?? 0).toFixed(2)}`}
             </Link>
-          )}
-          <UserButton />
-        </Show>
-        <Show when="signed-out">
-          <SignInButton mode="modal">
-            <button className="btn btn-primary">Sign in</button>
-          </SignInButton>
-        </Show>
+            <UserMenu email={me.email ?? ""} />
+          </>
+        ) : me ? (
+          <Link href={`/login?next=${encodeURIComponent(path)}`} className="btn btn-primary">
+            Sign in
+          </Link>
+        ) : null}
       </div>
       <nav className="scrollbar-none mx-auto flex max-w-[1400px] gap-0.5 overflow-x-auto px-2 sm:px-4">
         {[...LINKS, ...(me?.unlimited ? [{ href: "/previews", label: "Previews", icon: Film }] : [])].map(({ href, label, icon: Icon }) => {
@@ -98,5 +98,34 @@ export function Nav() {
         })}
       </nav>
     </header>
+  );
+}
+
+function UserMenu({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ededed] text-sm font-semibold uppercase text-black"
+        title={email}
+      >
+        {email[0] ?? "?"}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-10 z-50 w-56 rounded-lg border border-line-2 bg-[#202020] p-1 text-sm shadow-xl shadow-black/40">
+          <div className="truncate px-2.5 py-2 text-xs text-dim">{email}</div>
+          <Link href="/usage" className="block rounded-md px-2.5 py-1.5 hover:bg-[#2a2a2a]" onClick={() => setOpen(false)}>
+            Usage & credits
+          </Link>
+          <Link href="/keys" className="block rounded-md px-2.5 py-1.5 hover:bg-[#2a2a2a]" onClick={() => setOpen(false)}>
+            API keys
+          </Link>
+          <form action={signOutAction}>
+            <button className="w-full rounded-md px-2.5 py-1.5 text-left text-[#ff9592] hover:bg-[#2a2a2a]">Sign out</button>
+          </form>
+        </div>
+      )}
+    </div>
   );
 }

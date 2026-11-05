@@ -1,14 +1,17 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
-const isProtectedPage = createRouteMatcher(["/assets(.*)", "/keys(.*)", "/agent(.*)", "/usage(.*)"]);
+const PROTECTED = [/^\/assets/, /^\/keys/, /^\/agent/, /^\/usage/, /^\/previews/];
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedPage(req)) await auth.protect();
+export default auth((req) => {
+  const { pathname, search } = req.nextUrl;
+  if (!req.auth && PROTECTED.some((r) => r.test(pathname))) {
+    const url = new URL("/login", req.nextUrl.origin);
+    url.searchParams.set("next", pathname + search);
+    return NextResponse.redirect(url);
+  }
 });
 
 export const config = {
-  matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
-  ],
+  matcher: ["/((?!api|_next|.*\\..*).*)"],
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
 import { Check, ChevronDown, Code2, Copy, Loader2, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
 import type { Model } from "@/lib/catalog";
 import { FINAL, startRun, waitFor, type JobView } from "@/lib/client";
@@ -34,8 +34,14 @@ function CodeBlock({ code }: { code: string }) {
 }
 
 export function Playground({ model, preview }: { model: Model; preview?: { url: string; kind: string; source?: string } | null }) {
-  const { isSignedIn } = useAuth();
-  const clerk = useClerk();
+  const pathname = usePathname();
+  const [isSignedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => setSignedIn(Boolean(d.signedIn)))
+      .catch(() => {});
+  }, []);
   const [tab, setTab] = useState<"playground" | "api">("playground");
   const [values, setValues] = useState(() => initialValues(model.fields));
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -67,7 +73,7 @@ export function Playground({ model, preview }: { model: Model; preview?: { url: 
   const advanced = model.fields.filter((f) => f.advanced);
 
   const run = async () => {
-    if (!isSignedIn) return clerk.openSignIn();
+    if (!isSignedIn) return void window.location.assign(`/login?next=${encodeURIComponent(pathname)}`);
     setError("");
     setRunning(true);
     setElapsed(0);

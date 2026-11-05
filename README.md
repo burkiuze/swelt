@@ -4,7 +4,7 @@ A generative media platform in the spirit of fal.ai: browse image and video mode
 
 - **Models**: RunPod public endpoints (FLUX, Qwen Image, Seedream, Nano Banana, Z-Image, Pruna, Seedance, Veo, Hailuo, Vidu, Kling, Wan …) — see `lib/catalog.ts`
 - **Agent LLMs**: Claude Opus 5.5 and GPT-6.1 Sol through OpenRouter (`lib/agent.ts`)
-- **Auth**: Clerk (Google sign-in)
+- **Auth**: Auth.js — our own `/login` page with Google and GitHub sign-in
 - **Data**: Supabase — generations, credits, hashed API keys (`supabase/migrations`)
 - **Hosting**: Vercel (optional Vercel Blob for uploads and persisting outputs)
 

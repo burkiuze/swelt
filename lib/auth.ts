@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { dbEnabled, ensureProfile, resolveApiKey, type Profile } from "./db";
 
 export type Caller = { userId: string; email: string | null; via: "session" | "key"; profile: Profile | null; isAdmin: boolean };
@@ -21,7 +21,7 @@ export function newApiKey() {
   return { raw, prefix: raw.slice(0, 10), hash: hashKey(raw) };
 }
 
-/** Resolve the caller from a Clerk session or an `Authorization: Key swk_...` header. */
+/** Resolve the caller from a Vlipa session or an `Authorization: Key swk_...` header. */
 export async function getCaller(req?: Request): Promise<Caller | null> {
   const header = req?.headers.get("authorization") || "";
   const m = header.match(/^(?:Key|Bearer)\s+(swk_[A-Za-z0-9_-]+)$/);
@@ -33,10 +33,10 @@ export async function getCaller(req?: Request): Promise<Caller | null> {
     return { userId, email, via: "key", profile, isAdmin: !!email && adminEmails().includes(email.toLowerCase()) };
   }
 
-  const { userId } = await auth();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return null;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress ?? null;
+  const email = session.user?.email ?? null;
   const profile = dbEnabled() ? await ensureProfile(userId, email, freeCredits()) : null;
   return { userId, email, via: "session", profile, isAdmin: !!email && adminEmails().includes(email.toLowerCase()) };
 }

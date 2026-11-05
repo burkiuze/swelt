@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Footer } from "@/components/Footer";
@@ -14,21 +13,6 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#ededed",
-          colorPrimaryForeground: "#111111",
-          colorBackground: "#1c1c1c",
-          colorForeground: "#ededed",
-          colorInput: "#151515",
-          colorInputForeground: "#ededed",
-          colorMutedForeground: "#a1a1a1",
-          colorNeutral: "#ededed",
-          borderRadius: "6px",
-        },
-      }}
-    >
       <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
         <body className="min-h-screen">
           <Nav />
@@ -36,6 +20,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </body>
       </html>
-    </ClerkProvider>
   );
 }

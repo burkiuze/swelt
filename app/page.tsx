@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { Show } from "@clerk/nextjs";
+import { auth } from "@/auth";
 import { Dashboard } from "@/components/Dashboard";
 import { LatestModels } from "@/components/LatestModels";
 import { ModelsFrom } from "@/components/ModelsFrom";
 import { PromptBox } from "@/components/PromptBox";
 
-export const revalidate = 60;
 
-export default function Home() {
+export default async function Home() {
+  const signedIn = Boolean((await auth())?.user);
   return (
     <div>
       <section className="hero-bg grain px-4 pb-24 pt-14 text-center sm:pt-20">
@@ -24,18 +24,17 @@ export default function Home() {
       </div>
 
       <div className="mx-auto mt-12 max-w-[1400px] space-y-12 px-4 sm:px-6">
-        <Show when="signed-in">
+        {signedIn ? (
           <Dashboard />
-        </Show>
-        <Show when="signed-out">
+        ) : (
           <div className="card flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center">
             <div className="flex-1">
               <div className="font-semibold">Sign in to start generating</div>
               <div className="text-sm text-muted">Continue with Google. New accounts get free starter credits.</div>
             </div>
-            <Link href="/sign-in" className="btn btn-primary">Get started</Link>
+            <Link href="/login" className="btn btn-primary">Get started</Link>
           </div>
-        </Show>
+        )}
         <LatestModels />
       </div>
     </div>
