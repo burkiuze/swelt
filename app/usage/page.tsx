@@ -10,7 +10,7 @@ export default async function Page() {
   const caller = await getCaller();
   if (!caller) redirect("/sign-in");
   const s = dbEnabled() ? await stats(caller.userId) : null;
-  const rows = dbEnabled() ? await listGenerations(caller.userId, 100, null) : [];
+  const rows = dbEnabled() ? (await listGenerations(caller.userId, 100, null)).filter((g) => !g.model_id.startsWith("vlipa/")) : [];
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-7">
       <h1 className="text-3xl font-semibold">Usage & credits</h1>

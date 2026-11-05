@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const kind = url.searchParams.get("kind");
     const limit = Number(url.searchParams.get("limit") || 60);
     const rows = await listGenerations(caller.userId, limit, kind === "image" || kind === "video" ? kind : null);
-    return Response.json({ items: rows.map((g) => view(g)) });
+    return Response.json({ items: rows.filter((g) => !g.model_id.startsWith("vlipa/")).map((g) => view(g)) });
   } catch (e) {
     return errorResponse(e);
   }

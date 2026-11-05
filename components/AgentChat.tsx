@@ -35,6 +35,7 @@ import { deleteChat, getChat, listChats, saveChat, type StoredChat } from "@/lib
 import { MediaPicker } from "./MediaPicker";
 import { loadFalModels } from "./falModels";
 import { Markdown } from "./Markdown";
+import { useAutosize } from "./useAutosize";
 import { ModelPicker } from "./ModelPicker";
 
 type Proposal = { model_id: string; input: Record<string, unknown>; reason?: string };
@@ -233,6 +234,7 @@ export function AgentChat() {
   const [history, setHistory] = useState<StoredChat[]>([]);
   const loaded = useRef(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputRef = useAutosize(text, 280);
   const bottom = useRef<HTMLDivElement>(null);
   const jobsRef = useRef(jobs);
   useEffect(() => {
@@ -297,6 +299,53 @@ export function AgentChat() {
     return () => clearInterval(t);
   }, [pending, addJobs]);
 
+  /** Poll an agent run until it finishes. Network hiccups are retried; returns the agent result. */
+  const waitForRun = useCallback(async (runId: string) => {
+    const started = Date.now();
+    let misses = 0;
+    while (Date.now() - started < 340_000) {
+      await new Promise((r) => setTimeout(r, document.visibilityState === "visible" ? 1500 : 4000));
+      try {
+        const r = await fetch(`/api/agent?id=${encodeURIComponent(runId)}`, { cache: "no-store" });
+        const d = await r.json();
+        misses = 0;
+        if (d.status === "COMPLETED") return d.result;
+        if (d.status === "FAILED" || (!r.ok && r.status !== 429)) throw new Error(d.error || `HTTP ${r.status}`);
+      } catch (e) {
+        if (e instanceof Error && !/failed to fetch|load failed|networkerror|json/i.test(e.message)) throw e;
+        if (++misses > 40) throw new Error("Connection lost. Check your internet and try again.");
+      }
+    }
+    throw new Error("The agent took too long to answer. Please try again.");
+  }, []);
+
+  // Resume a run that was still going when the page was left (e.g. the app was switched).
+  const resumed = useRef(false);
+  const activeRun = useRef<string | null>(null);
+  useEffect(() => {
+    if (resumed.current) return;
+    let runId: string | null = null;
+    try {
+      runId = sessionStorage.getItem(`vlipa-run-${chatId}`);
+    } catch {}
+    if (!runId || !msgs.length || runId === activeRun.current) return;
+    resumed.current = true;
+    setBusy(true);
+    waitForRun(runId)
+      .then((data) => {
+        addJobs(data.jobs || []);
+        setSuggestion(data.suggestion || null);
+        setMsgs((m) => [...m, { role: "assistant", content: data.reply || "", jobIds: (data.jobs || []).map((j: JobView) => j.request_id), proposals: data.proposals, steps: data.steps, ms: data.ms, at: Date.now() }]);
+      })
+      .catch((e) => setMsgs((m) => [...m, { role: "assistant", content: e instanceof Error ? e.message : String(e), error: true, at: Date.now() }]))
+      .finally(() => {
+        try {
+          sessionStorage.removeItem(`vlipa-run-${chatId}`);
+        } catch {}
+        setBusy(false);
+      });
+  }, [chatId, msgs.length, waitForRun, addJobs]);
+
   const send = useCallback(
     async (content: string, files: string[] = []) => {
       if ((!content.trim() && !files.length) || busy) return;
@@ -342,18 +391,25 @@ export function AgentChat() {
         }
         return;
       }
-      // Never spin forever: give up a little before the server's own 300 s limit.
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 290_000);
       try {
         const res = await fetch("/api/agent", {
           method: "POST",
-          signal: ctrl.signal,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messages: toHistory(next, jobsRef.current), llm, effort, approval, media: media === "auto" ? undefined : media }),
         });
-        const data = await res.json().catch(() => ({ error: res.status === 504 ? "The agent took too long to answer. Please try again." : `Server error (${res.status}). Please try again.` }));
+        let data = await res.json().catch(() => ({ error: `Server error (${res.status}). Please try again.` }));
         if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+        if (data.run_id) {
+          // The agent runs on the server; poll for the answer (survives app switches / screen lock).
+          activeRun.current = data.run_id;
+          try {
+            sessionStorage.setItem(`vlipa-run-${chatId}`, data.run_id);
+          } catch {}
+          data = await waitForRun(data.run_id);
+          try {
+            sessionStorage.removeItem(`vlipa-run-${chatId}`);
+          } catch {}
+        }
         addJobs(data.jobs || []);
         setSuggestion(data.suggestion || null);
         setMsgs((m) => [
@@ -370,14 +426,14 @@ export function AgentChat() {
         ]);
         window.dispatchEvent(new Event("swelt:credits"));
       } catch (e) {
-        const text = e instanceof DOMException && e.name === "AbortError" ? "The agent took too long to answer. Please try again." : e instanceof Error ? e.message : String(e);
+        const raw = e instanceof Error ? e.message : String(e);
+        const text = /failed to fetch|load failed|networkerror/i.test(raw) ? "Connection lost. Check your internet and try again." : raw;
         setMsgs((m) => [...m, { role: "assistant", content: text, error: true, at: Date.now() }]);
       } finally {
-        clearTimeout(timer);
         setBusy(false);
       }
     },
-    [msgs, llm, effort, approval, media, busy, addJobs, direct, mediaKind],
+    [msgs, llm, effort, approval, media, busy, addJobs, direct, mediaKind, chatId, waitForRun],
   );
 
   useEffect(() => {
@@ -482,7 +538,7 @@ export function AgentChat() {
             {msgs.length === 0 && !busy && (
               <div className="py-20 text-center">
                 <h1 className="text-xl font-semibold tracking-tight">What do you want to create?</h1>
-                <p className="mt-1.5 text-sm text-muted">The Agent picks models, writes prompts and runs them on RunPod for you.</p>
+                <p className="mt-1.5 text-sm text-muted">The Agent picks the right models, writes the prompts and runs them for you.</p>
               </div>
             )}
 
@@ -568,6 +624,7 @@ export function AgentChat() {
             )}
             <div className="flex items-end gap-2 px-3 pb-1 pt-2.5">
               <textarea
+                ref={inputRef}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => {
@@ -581,7 +638,7 @@ export function AgentChat() {
                 }}
                 rows={1}
                 placeholder={suggestion || (msgs.length ? "Ask for changes, variations, or animate a result…" : "Describe what you want to generate…")}
-                className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-dim"
+                className="min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm leading-relaxed outline-none placeholder:text-dim"
               />
               {suggestion && !text && <span className="mb-2 hidden shrink-0 rounded border border-line-2 px-1.5 text-[11px] text-dim sm:inline">Tab to use</span>}
               <button

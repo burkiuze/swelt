@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { ArrowUp, Clapperboard, Hand, ImageIcon, Loader2, Plus, Shuffle, Sparkles, X } from "lucide-react";
 import { upload } from "@/lib/client";
+import { useAutosize } from "./useAutosize";
 import type { Effort, LlmKey } from "@/lib/llm";
 import { MediaPicker } from "./MediaPicker";
 import { ModelPicker } from "./ModelPicker";
@@ -83,6 +84,7 @@ export function PromptBox() {
   const [files, setFiles] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputRef = useAutosize(text, 300);
   const current = MODES.find((m) => m.key === mode)!;
 
   const attach = async (list: FileList | null) => {
@@ -135,6 +137,7 @@ export function PromptBox() {
       </div>
       <div className="rounded-xl border border-line-2 bg-[#1e1e1e] shadow-2xl shadow-black/40">
         <textarea
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
@@ -145,7 +148,7 @@ export function PromptBox() {
           }}
           rows={3}
           placeholder={current.placeholder}
-          className="block w-full resize-none bg-transparent px-4 pt-4 text-[15px] leading-relaxed outline-none placeholder:text-dim"
+          className="block min-h-[84px] w-full resize-none bg-transparent px-4 pt-4 text-[15px] leading-relaxed outline-none placeholder:text-dim"
         />
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2 px-4 pt-2">
