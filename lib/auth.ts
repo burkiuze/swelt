@@ -5,7 +5,8 @@ import { dbEnabled, ensureProfile, resolveApiKey, type Profile } from "./db";
 
 export type Caller = { userId: string; email: string | null; via: "session" | "key"; profile: Profile | null; isAdmin: boolean };
 
-export const freeCredits = () => Number(process.env.FREE_CREDITS ?? "1");
+// New accounts start with no credits; credits come from redeemed plan codes.
+export const freeCredits = () => Number(process.env.FREE_CREDITS ?? "0");
 
 function adminEmails() {
   return (process.env.ADMIN_EMAILS || "")

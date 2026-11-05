@@ -28,7 +28,7 @@ export default async function Page() {
           <div className="mt-1 text-2xl font-semibold">{s?.requests_7d ?? 0} / {s?.errors_7d ?? 0}</div>
         </div>
       </div>
-      <p className="text-sm text-muted">New accounts start with {creditsLabel(Number(process.env.FREE_CREDITS ?? 1))} free. Each run is charged the price shown on the model.</p>
+      <p className="text-sm text-muted">Get credits by redeeming a plan code on your Account page. Each run is charged the price shown on the model.</p>
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left text-muted">

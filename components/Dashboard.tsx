@@ -93,10 +93,10 @@ export function Dashboard() {
           <div className="space-y-5 p-5">
             <div>
               <h3 className="text-base font-semibold">Set up your account</h3>
-              <p className="mt-1 text-sm text-muted">Sign in, grab your starter credits and make something.</p>
+              <p className="mt-1 text-sm text-muted">Sign in, add credits with a plan code and make something.</p>
             </div>
             <Step done label="Create an account" />
-            <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Claim starter credits" href="/usage" cta="View credits" />
+            <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Add credits with a plan code" href="/pricing" cta="See plans" />
             <Step done={!!s && s.requests_7d > 0} label="Make your first image or video" href="/explore" cta="Try a model" />
           </div>
           <div className="space-y-5 p-5">

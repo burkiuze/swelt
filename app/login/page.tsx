@@ -82,7 +82,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {none && <p className="mt-4 text-center text-xs text-[#facc15]">Sign-in providers are not configured yet.</p>}
 
         <p className="mt-6 text-center text-[11px] leading-relaxed text-dim">
-          By continuing you agree to Vlipa&apos;s Terms and Privacy Policy. New accounts get free starter credits.
+          By continuing you agree to Vlipa&apos;s Terms and Privacy Policy.
         </p>
       </div>
     </div>

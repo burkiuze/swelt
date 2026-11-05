@@ -32,7 +32,7 @@ export default async function Home() {
           <div className="card flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center">
             <div className="flex-1">
               <div className="font-semibold">Create your free account</div>
-              <div className="text-sm text-muted">Sign in with Google and get starter credits to try any model.</div>
+              <div className="text-sm text-muted">Sign in with Google, pick a plan and start creating.</div>
             </div>
             <Link href="/login" className="btn btn-primary">Get started</Link>
           </div>
