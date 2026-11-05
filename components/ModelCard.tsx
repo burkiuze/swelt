@@ -39,6 +39,23 @@ export function ModelArt({ model, className = "" }: { model: Model; className?: 
   );
 }
 
+export type Preview = { url: string; kind: "image" | "video" };
+
+/** Real output preview when one exists, otherwise the abstract placeholder. */
+export function ModelThumb({ model, preview, className = "" }: { model: Model; preview?: Preview | null; className?: string }) {
+  if (!preview) return <ModelArt model={model} className={className} />;
+  return (
+    <div className={`relative overflow-hidden bg-[#141414] ${className}`}>
+      {preview.kind === "video" ? (
+        <video src={preview.url} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={preview.url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      )}
+    </div>
+  );
+}
+
 export function ModelName({ id, className = "" }: { id: string; className?: string }) {
   const [lab, ...rest] = id.split("/");
   return (
@@ -49,11 +66,11 @@ export function ModelName({ id, className = "" }: { id: string; className?: stri
   );
 }
 
-export function ModelCard({ model }: { model: Model }) {
+export function ModelCard({ model, preview }: { model: Model; preview?: Preview | null }) {
   return (
     <Link href={`/models/${model.id}`} className="card group block overflow-hidden transition hover:border-line-2">
       <div className="relative">
-        <ModelArt model={model} className="aspect-[16/9]" />
+        <ModelThumb model={model} preview={preview} className="aspect-[16/9]" />
         {model.isNew && <span className="absolute left-3 top-3 rounded bg-[#d9f99d] px-1.5 py-0.5 text-xs font-medium text-black">new</span>}
       </div>
       <div className="space-y-3 p-5">
@@ -75,10 +92,10 @@ export function ModelCard({ model }: { model: Model }) {
   );
 }
 
-export function ModelRow({ model }: { model: Model }) {
+export function ModelRow({ model, preview }: { model: Model; preview?: Preview | null }) {
   return (
     <Link href={`/models/${model.id}`} className="flex items-center gap-3 rounded-md p-1.5 hover:bg-panel-2">
-      <ModelArt model={model} className="h-11 w-11 shrink-0 rounded-md" />
+      <ModelThumb model={model} preview={preview} className="h-11 w-11 shrink-0 rounded-md" />
       <div className="min-w-0">
         <ModelName id={model.id} className="block text-[15px]" />
         <div className="truncate text-xs text-dim">{model.description}</div>

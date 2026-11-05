@@ -94,3 +94,15 @@ export const listApiKeys = (user: string) =>
 export const revokeApiKey = (user: string, id: string) => rpc<null>("swelt_revoke_api_key", { p_user: user, p_id: id });
 
 export const resolveApiKey = (hash: string) => rpc<string | null>("swelt_resolve_api_key", { p_hash: hash });
+
+export type Showcase = { model_id: string; media_url: string; kind: "image" | "video"; prompt: string | null; updated_at: string };
+
+export const listShowcase = () => rpc<Showcase[]>("swelt_list_showcase", {});
+
+export const setShowcase = (model: string, url: string, kind: string, prompt: string | null, onlyIfMissing: boolean) =>
+  rpc<boolean>("swelt_set_showcase", { p_model: model, p_url: url, p_kind: kind, p_prompt: prompt, p_only_if_missing: onlyIfMissing });
+
+export const getGenerationAny = async (id: string) => {
+  const g = await rpc<Generation | null>("swelt_get_generation_any", { p_id: id });
+  return g && g.id ? g : null;
+};

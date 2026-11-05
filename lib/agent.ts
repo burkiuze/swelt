@@ -17,7 +17,8 @@ type ToolCall = { id: string; type: "function"; function: { name: string; argume
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 export type Proposal = { model_id: string; input: Record<string, unknown>; reason?: string };
-export type AgentResult = { reply: string; jobs: JobView[]; proposals: Proposal[]; model: string };
+export type Step = { label: string; ms: number; kind: "think" | "tool"; detail?: unknown };
+export type AgentResult = { reply: string; jobs: JobView[]; proposals: Proposal[]; model: string; steps: Step[]; ms: number; suggestion: string | null };
 
 const TOOLS = [
   {
@@ -47,7 +48,9 @@ Guidelines:
 - Text-to-image for new images; image-to-image models need "images" (array of URLs) or "image"; video models need "image" for image-to-video.
 - Chain steps by passing previous output URLs. If the user attached image URLs, use them.
 - Keep costs sensible: fast/cheap models for drafts, premium ones when quality is requested.
-- After results arrive, reply briefly (2-4 sentences) in the user's language: what you made, and suggest next steps. Don't paste raw URLs; the UI shows media.
+- After results arrive, reply briefly (2-4 sentences) in the user's language: what you made. Don't paste raw URLs; the UI shows media.
+- If the user just chats (e.g. says hello), answer briefly without calling tools.
+- End every final reply with one line "NEXT: <a short follow-up request the user could send next>" in the user's language.
 ${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
 Model catalog (inputs marked * are required):
 ${catalogForAgent()}`;
@@ -83,13 +86,21 @@ export async function runAgent(
   const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval) }, ...history.slice(-20)];
   const jobs: JobView[] = [];
   const proposals: Proposal[] = [];
+  const steps: Step[] = [];
   const started = Date.now();
+  const label = opts.llm === "sol" ? "GPT-6.1 Sol" : "Opus 5.5";
+  const done = (reply: string): AgentResult => {
+    const m = reply.match(/\n?\s*NEXT:\s*(.+)\s*$/i);
+    return { reply: (m ? reply.slice(0, m.index) : reply).trim(), jobs, proposals, model, steps, ms: Date.now() - started, suggestion: m ? m[1].trim() : null };
+  };
   const BUDGET = 270_000;
 
   for (let step = 0; step < 6; step++) {
+    const t0 = Date.now();
     const msg = await chat(model, messages, opts.effort);
     const calls = msg.tool_calls ?? [];
-    if (!calls.length) return { reply: msg.content?.trim() || "", jobs, proposals, model };
+    steps.push({ label: step === 0 ? `Planning with ${label}` : `Reviewing results with ${label}`, ms: Date.now() - t0, kind: "think", detail: calls.length ? calls.map((c) => c.function.name + " " + c.function.arguments) : undefined });
+    if (!calls.length) return done(typeof msg.content === "string" ? msg.content : "");
     messages.push({ role: "assistant", content: msg.content ?? null, tool_calls: calls });
 
     const results = await Promise.all(
@@ -108,15 +119,19 @@ export async function runAgent(
           return { id: c.id, content: JSON.stringify({ status: "PROPOSED", note: "Shown to the user for approval; not executed." }) };
         }
         const remaining = Math.max(15_000, BUDGET - (Date.now() - started) - 30_000);
+        const t1 = Date.now();
         try {
           const v = await runAndWait(caller, args.model_id, args.input || {}, Math.min(remaining, 200_000));
           jobs.push(v);
+          steps.push({ label: `Calling ${getModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, status: v.status, media: v.media, error: v.error } });
           return {
             id: c.id,
             content: JSON.stringify({ request_id: v.request_id, status: v.status, media: v.media, error: v.error, note: v.status === "COMPLETED" || v.status === "FAILED" ? undefined : "Still running; the UI will keep polling it." }),
           };
         } catch (e) {
-          return { id: c.id, content: JSON.stringify({ error: e instanceof Error ? e.message : String(e) }) };
+          const error = e instanceof Error ? e.message : String(e);
+          steps.push({ label: `Calling ${getModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, error } });
+          return { id: c.id, content: JSON.stringify({ error }) };
         }
       }),
     );
@@ -135,8 +150,9 @@ export async function runAgent(
       signal: AbortSignal.timeout(60_000),
     });
     const json = await res.json();
-    return { reply: json?.choices?.[0]?.message?.content?.trim() || "", jobs, proposals, model };
+    const c = json?.choices?.[0]?.message?.content;
+    return done(typeof c === "string" ? c : "");
   } catch {
-    return { reply: "", jobs, proposals, model };
+    return done("");
   }
 }

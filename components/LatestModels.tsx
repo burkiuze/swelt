@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { MODELS } from "@/lib/catalog";
-import { CategoryChip, ModelArt, ModelName } from "./ModelCard";
+import { getPreviews } from "@/lib/showcase";
+import { CategoryChip, ModelName, ModelThumb } from "./ModelCard";
 
-export function LatestModels() {
+export async function LatestModels() {
+  const previews = await getPreviews();
   const latest = MODELS.filter((m) => m.isNew).concat(MODELS.filter((m) => !m.isNew)).slice(0, 8);
   return (
     <section>
@@ -18,7 +20,7 @@ export function LatestModels() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {latest.map((m) => (
           <Link key={m.id} href={`/models/${m.id}`} className="card flex overflow-hidden transition hover:border-line-2">
-            <ModelArt model={m} className="w-28 shrink-0" />
+            <ModelThumb model={m} preview={previews[m.id]} className="w-28 shrink-0" />
             <div className="min-w-0 space-y-2.5 p-3.5">
               <ModelName id={m.id} className="block text-[15px]" />
               <div className="flex items-center gap-2">

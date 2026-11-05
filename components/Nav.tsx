@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
-import { BookOpen, FolderOpen, House, KeyRound, LayoutGrid, Search, Sparkles } from "lucide-react";
+import { BookOpen, Film, FolderOpen, House, KeyRound, LayoutGrid, Search, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 
 const LINKS = [
@@ -80,7 +80,7 @@ export function Nav() {
         </Show>
       </div>
       <nav className="scrollbar-none mx-auto flex max-w-[1400px] gap-1 overflow-x-auto px-2 sm:px-5">
-        {LINKS.map(({ href, label, icon: Icon }) => {
+        {[...LINKS, ...(me?.unlimited ? [{ href: "/previews", label: "Previews", icon: Film }] : [])].map(({ href, label, icon: Icon }) => {
           const active = isActive(path, href);
           return (
             <Link

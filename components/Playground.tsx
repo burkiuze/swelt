@@ -33,7 +33,7 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
-export function Playground({ model }: { model: Model }) {
+export function Playground({ model, preview }: { model: Model; preview?: { url: string; kind: string } | null }) {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
   const [tab, setTab] = useState<"playground" | "api">("playground");
@@ -207,6 +207,11 @@ console.log(job.media); // array of ${model.kind} URLs`;
                   <Loader2 className="animate-spin" />
                   {job?.status === "IN_PROGRESS" ? "Generating…" : "In queue…"} {elapsed.toFixed(0)}s
                   {model.kind === "video" && <span className="text-xs text-dim">Videos usually take 1–5 minutes.</span>}
+                </div>
+              ) : preview ? (
+                <div className="relative flex h-full w-full items-center justify-center">
+                  <Media url={preview.url} kind={preview.kind} />
+                  <span className="absolute left-3 top-3 rounded bg-black/60 px-2 py-0.5 text-xs text-zinc-300">Example output</span>
                 </div>
               ) : (
                 <div className="text-sm text-dim">Your {model.kind} will appear here.</div>

@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import type { Caller } from "./auth";
 import { getModel, type Model } from "./catalog";
-import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, type Generation } from "./db";
+import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
 import { persistMedia } from "./storage";
 
@@ -78,6 +78,11 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
     const cost = extractCost(job.output) ?? model.price;
     const error = media.length ? null : "Model finished but returned no media";
     gen = await finish(gen, { status: media.length ? "COMPLETED" : "FAILED", output: job.output, media, cost, error, charge: !caller.isAdmin });
+    // Admin runs become model previews: "showcase" runs replace the preview, others only fill a missing one.
+    if (caller.isAdmin && media[0] && dbEnabled()) {
+      const prompt = typeof gen.input?.prompt === "string" ? gen.input.prompt : null;
+      await setShowcase(model.id, media[0], model.kind, prompt, gen.source !== "showcase").catch(() => {});
+    }
   } else {
     gen = await finish(gen, { status: job.status === "TIMED_OUT" || job.status === "CANCELLED" ? "FAILED" : job.status, output: job.output ?? null, media: [], cost: 0, error: job.error || job.status, charge: false });
   }

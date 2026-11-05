@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
 
@@ -32,14 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <body className="min-h-screen">
           <Nav />
           <main>{children}</main>
-          <footer className="mx-auto mt-16 flex max-w-[1400px] flex-wrap justify-between gap-4 border-t border-line px-4 py-8 text-sm text-dim sm:px-7">
-            <span>© {new Date().getFullYear()} Swelt</span>
-            <span className="flex gap-5">
-              <a href="/explore" className="hover:text-white">Models</a>
-              <a href="/docs" className="hover:text-white">Docs</a>
-              <a href="/keys" className="hover:text-white">API keys</a>
-            </span>
-          </footer>
+          <Footer />
         </body>
       </html>
     </ClerkProvider>

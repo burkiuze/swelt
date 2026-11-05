@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
 import { LABS, MODELS, type Model } from "@/lib/catalog";
-import { ModelCard } from "./ModelCard";
+import { ModelCard, type Preview } from "./ModelCard";
 
 const TABS = [
   { key: "all", label: "All" },
@@ -15,7 +15,7 @@ const TABS = [
   { key: "image-to-video", label: "Image → Video" },
 ];
 
-function Section({ title, subtitle, models }: { title: string; subtitle?: string; models: Model[] }) {
+function Section({ title, subtitle, models, previews }: { title: string; subtitle?: string; models: Model[]; previews: Record<string, Preview> }) {
   if (!models.length) return null;
   return (
     <section>
@@ -25,14 +25,14 @@ function Section({ title, subtitle, models }: { title: string; subtitle?: string
       {subtitle && <p className="mt-2 text-lg text-muted">{subtitle}</p>}
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {models.map((m) => (
-          <ModelCard key={m.id} model={m} />
+          <ModelCard key={m.id} model={m} preview={previews[m.id]} />
         ))}
       </div>
     </section>
   );
 }
 
-export function Explore() {
+export function Explore({ previews = {} }: { previews?: Record<string, Preview> }) {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("all");
   const [lab, setLab] = useState<string | null>(null);
@@ -84,13 +84,13 @@ export function Explore() {
 
       {browsing ? (
         <>
-          <Section title="Recently Added" subtitle="Newly added models across image and video." models={MODELS.filter((m) => m.isNew)} />
-          <Section title="Video" subtitle="Text-to-video, image-to-video and video editing." models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
-          <Section title="Image editing" subtitle="Edit images with reference photos and instructions." models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
-          <Section title="Text to image" subtitle="Fast drafts to premium renders." models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
+          <Section title="Recently Added" subtitle="Newly added models across image and video." previews={previews} models={MODELS.filter((m) => m.isNew)} />
+          <Section title="Video" subtitle="Text-to-video, image-to-video and video editing." previews={previews} models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
+          <Section title="Image editing" subtitle="Edit images with reference photos and instructions." previews={previews} models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
+          <Section title="Text to image" subtitle="Fast drafts to premium renders." previews={previews} models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
         </>
       ) : filtered.length ? (
-        <Section title={`${filtered.length} model${filtered.length === 1 ? "" : "s"}`} models={filtered} />
+        <Section previews={previews} title={`${filtered.length} model${filtered.length === 1 ? "" : "s"}`} models={filtered} />
       ) : (
         <div className="card p-10 text-center text-muted">No models match your search.</div>
       )}

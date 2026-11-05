@@ -2,44 +2,27 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowUp, BrainCircuit, Hand, ImageIcon, Plus, TextQuote } from "lucide-react";
-import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
+import { ArrowUp, Hand, ImageIcon, Plus, TextQuote } from "lucide-react";
+import type { Effort, LlmKey } from "@/lib/llm";
+import { ModelPicker } from "./ModelPicker";
 
 export type AgentPrefs = { llm: LlmKey; effort: Effort; approval: boolean };
 
-const sel = "cursor-pointer appearance-none bg-transparent outline-none";
-
 export function AgentControls({ prefs, onChange }: { prefs: AgentPrefs; onChange: (p: AgentPrefs) => void }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px]">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
       <button
         type="button"
         onClick={() => onChange({ ...prefs, approval: !prefs.approval })}
-        className={`flex items-center gap-1.5 ${prefs.approval ? "text-white" : "text-muted hover:text-white"}`}
+        className={`flex items-center gap-1.5 rounded-md px-2 py-1 transition hover:bg-panel-2 ${prefs.approval ? "text-white" : "text-muted"}`}
         title="When on, the agent proposes model runs and waits for your approval"
       >
-        <Hand size={16} strokeWidth={1.8} /> {prefs.approval ? "Ask for approval" : "Auto-run"}
+        <Hand size={15} strokeWidth={1.8} /> {prefs.approval ? "Ask for approval" : "Auto-run"}
       </button>
       <span className="flex-1" />
-      <span className="flex items-center gap-1.5 text-muted">
-        <BrainCircuit size={16} strokeWidth={1.8} />
-        <select value={prefs.llm} onChange={(e) => onChange({ ...prefs, llm: e.target.value as LlmKey })} className={`${sel} font-semibold text-white`}>
-          {LLMS.map((l) => (
-            <option key={l.key} value={l.key} className="bg-panel">
-              {l.label}
-            </option>
-          ))}
-        </select>
-        <select value={prefs.effort} onChange={(e) => onChange({ ...prefs, effort: e.target.value as Effort })} className={`${sel} capitalize`}>
-          {EFFORTS.map((e) => (
-            <option key={e} value={e} className="bg-panel capitalize">
-              {e[0].toUpperCase() + e.slice(1)}
-            </option>
-          ))}
-        </select>
-      </span>
-      <span className="flex items-center gap-1.5 text-muted">
-        <ImageIcon size={16} strokeWidth={1.8} /> <span className="font-semibold text-white">Media</span> RunPod
+      <ModelPicker llm={prefs.llm} effort={prefs.effort} onChange={(v) => onChange({ ...prefs, ...v })} />
+      <span className="hidden items-center gap-1.5 px-2 text-muted sm:flex">
+        <ImageIcon size={15} strokeWidth={1.8} /> <span className="font-semibold text-white">Media</span> RunPod
       </span>
     </div>
   );

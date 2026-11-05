@@ -4,6 +4,8 @@ import { Dashboard } from "@/components/Dashboard";
 import { LatestModels } from "@/components/LatestModels";
 import { PromptBox } from "@/components/PromptBox";
 
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <div>
