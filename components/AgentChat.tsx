@@ -29,6 +29,7 @@ import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { Media } from "./Media";
 import { AgentRail } from "./AgentRail";
 import { MediaPicker } from "./MediaPicker";
+import { Markdown } from "./Markdown";
 import { ModelPicker } from "./ModelPicker";
 
 type Proposal = { model_id: string; input: Record<string, unknown>; reason?: string };
@@ -251,14 +252,18 @@ export function AgentChat() {
       setSuggestion(null);
       setAttachments([]);
       setBusy(true);
+      // Never spin forever: give up a little before the server's own 300 s limit.
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 290_000);
       try {
         const res = await fetch("/api/agent", {
           method: "POST",
+          signal: ctrl.signal,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messages: toHistory(next, jobsRef.current), llm, effort, approval, media: media === "auto" ? undefined : media }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        const data = await res.json().catch(() => ({ error: res.status === 504 ? "The agent took too long to answer. Please try again." : `Server error (${res.status}). Please try again.` }));
+        if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
         addJobs(data.jobs || []);
         setSuggestion(data.suggestion || null);
         setMsgs((m) => [
@@ -275,8 +280,10 @@ export function AgentChat() {
         ]);
         window.dispatchEvent(new Event("swelt:credits"));
       } catch (e) {
-        setMsgs((m) => [...m, { role: "assistant", content: e instanceof Error ? e.message : String(e), error: true, at: Date.now() }]);
+        const text = e instanceof DOMException && e.name === "AbortError" ? "The agent took too long to answer. Please try again." : e instanceof Error ? e.message : String(e);
+        setMsgs((m) => [...m, { role: "assistant", content: text, error: true, at: Date.now() }]);
       } finally {
+        clearTimeout(timer);
         setBusy(false);
       }
     },
@@ -366,7 +373,14 @@ export function AgentChat() {
               ) : (
                 <div key={i} className="space-y-4">
                   {m.steps && m.steps.length > 0 && <Steps steps={m.steps} ms={m.ms ?? 0} />}
-                  {m.content && <div className={`whitespace-pre-wrap leading-relaxed ${m.error ? "text-[#ff9592]" : "text-zinc-200"}`}>{m.content}</div>}
+                  {m.content &&
+                    (m.error ? (
+                      <div className="whitespace-pre-wrap leading-relaxed text-[#ff9592]">{m.content}</div>
+                    ) : (
+                      <div className="leading-relaxed text-zinc-200">
+                        <Markdown>{m.content}</Markdown>
+                      </div>
+                    ))}
                   {m.proposals && m.proposals.length > 0 && (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {m.proposals.map((p, k) => (

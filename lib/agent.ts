@@ -52,7 +52,8 @@ Guidelines:
 - Text-to-image for new images; image-to-image models need "images" (array of URLs) or "image"; video models need "image" for image-to-video.
 - Chain steps by passing previous output URLs. If the user attached image URLs, use them.
 - Keep costs sensible: fast/cheap models for drafts, premium ones when quality is requested.
-- After results arrive, reply briefly (2-4 sentences) in the user's language: what you made. Don't paste raw URLs; the UI shows media.
+- After results arrive, reply briefly (2-4 sentences) in the user's language: what you made. Don't paste raw URLs; the UI shows media. If a render is still running, say it is being generated and will appear in a moment.
+- Format replies in Markdown (short paragraphs, **bold** for key points, bullet lists for options).
 - If the user just chats (e.g. says hello), answer briefly without calling tools.
 - End every final reply with one line "NEXT: <a short follow-up request the user could send next>" in the user's language.
 ${picked ? `- THE USER PICKED THE MEDIA MODEL ${picked.id} (${picked.name}). Use only this model for every generate_media call.\n` : ""}${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
@@ -126,7 +127,7 @@ export async function runAgent(
         const remaining = Math.max(15_000, BUDGET - (Date.now() - started) - 30_000);
         const t1 = Date.now();
         try {
-          const v = await runAndWait(caller, args.model_id, args.input || {}, Math.min(remaining, 200_000));
+          const v = await runAndWait(caller, args.model_id, args.input || {}, Math.min(remaining, 25_000));
           jobs.push(v);
           steps.push({ label: `Calling ${getModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, status: v.status, media: v.media, error: v.error } });
           return {
@@ -142,7 +143,9 @@ export async function runAgent(
     );
     for (const r of results) messages.push({ role: "tool", tool_call_id: r.id, content: r.content });
     for (const c of calls.slice(4)) messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify({ error: "Skipped: max 4 calls per turn" }) });
-    if (opts.approval || Date.now() - started > BUDGET) break;
+    // Renders still running → wrap up now; the UI keeps polling them (avoids duplicate runs).
+    const pending = jobs.some((j) => !["COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT"].includes(j.status));
+    if (opts.approval || pending || Date.now() - started > BUDGET) break;
   }
 
   // Ask for a final summary without tools.

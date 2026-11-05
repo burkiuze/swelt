@@ -2,6 +2,7 @@ import { getCaller, unauthorized } from "@/lib/auth";
 import { errorResponse, startJob } from "@/lib/jobs";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 // POST /api/run  { "model": "black-forest-labs/flux-1-schnell", "input": { "prompt": "..." } }
 export async function POST(req: Request) {

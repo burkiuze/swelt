@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { after } from "next/server";
 import type { Caller } from "./auth";
 import { getModel, markup, type Model } from "./catalog";
 import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
@@ -22,6 +23,8 @@ export type JobView = {
   output?: unknown;
   created_at?: string;
 };
+
+const OR_IMAGE = "orimg";
 
 // Fallback state when Supabase isn't configured (single-instance only; good for local dev).
 const memory = new Map<string, Generation>();
@@ -55,21 +58,34 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   }
 
   try {
-    // OpenRouter images are synchronous: generate, store and finish right away.
+    // OpenRouter's image API answers synchronously and can take a minute, so generate after the
+    // response is sent; callers poll the generation like any other async job.
     if (model.provider === "openrouter" && model.kind === "image") {
-      const r = await orImage(model, input, gen.id);
-      gen = await finish(gen, {
-        status: r.media.length ? "COMPLETED" : "FAILED",
-        output: r.output,
-        media: r.media,
-        cost: r.cost != null ? markup(r.cost / Math.max(1, r.media.length)) * Math.max(1, r.media.length) : model.price,
-        error: r.media.length ? null : "Model finished but returned no media",
-        charge: !caller.isAdmin,
+      const jobRef = `${OR_IMAGE}:${gen.id}`;
+      if (dbEnabled()) await setJob(gen.id, jobRef, "IN_PROGRESS");
+      gen = { ...gen, runpod_job_id: jobRef, status: "IN_PROGRESS" };
+      if (!dbEnabled()) memory.set(gen.id, gen);
+      const started = gen;
+      after(async () => {
+        try {
+          const r = await orImage(model, input, started.id);
+          const n = Math.max(1, r.media.length);
+          await finish(started, {
+            status: r.media.length ? "COMPLETED" : "FAILED",
+            output: r.output,
+            media: r.media,
+            cost: r.cost != null ? markup(r.cost / n) * n : model.price,
+            error: r.media.length ? null : "Model finished but returned no media",
+            charge: !caller.isAdmin,
+          });
+          if (caller.isAdmin && r.media[0] && dbEnabled()) {
+            const p = typeof input.prompt === "string" ? input.prompt : null;
+            await setShowcase(model.id, r.media[0], model.kind, p, source !== "showcase").catch(() => {});
+          }
+        } catch (e) {
+          await finish(started, { status: "FAILED", output: null, media: [], cost: 0, error: e instanceof Error ? e.message : String(e), charge: false }).catch(() => {});
+        }
       });
-      if (caller.isAdmin && r.media[0] && dbEnabled()) {
-        const p = typeof input.prompt === "string" ? input.prompt : null;
-        await setShowcase(model.id, r.media[0], model.kind, p, source !== "showcase").catch(() => {});
-      }
       return view(gen, model);
     }
     const { endpoint, job } =
@@ -94,6 +110,14 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
 
   // runpod_job_id is stored as "<endpoint>:<job id>"
   const [endpoint, jobId] = gen.runpod_job_id.includes(":") ? gen.runpod_job_id.split(/:(.+)/) : [gen.endpoint_id, gen.runpod_job_id];
+  // Background OpenRouter image: the row is updated when it finishes. Fail it if it never does.
+  if (endpoint === OR_IMAGE) {
+    const age = Date.now() - new Date(gen.created_at || Date.now()).getTime();
+    if (age > 6 * 60_000) {
+      gen = await finish(gen, { status: "FAILED", output: null, media: [], cost: 0, error: "The image took too long and was cancelled. Please try again.", charge: false });
+    }
+    return view(gen, model);
+  }
   const isOr = endpoint.startsWith(OR_PREFIX);
   const job = endpoint.startsWith(HF_PREFIX) ? await hfStatus(jobId) : isOr ? await orVideoStatus(jobId) : await rpStatus(endpoint, jobId);
   if (!isFinal(job.status)) {
