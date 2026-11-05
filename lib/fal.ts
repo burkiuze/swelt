@@ -25,9 +25,33 @@ function headers() {
 }
 
 async function api<T>(path: string, revalidate = 3600): Promise<T> {
-  const res = await fetch(`${API}${path}`, { headers: headers(), next: { revalidate }, signal: AbortSignal.timeout(30_000) });
-  if (!res.ok) throw new Error(`fal ${path.split("?")[0]}: HTTP ${res.status}`);
-  return (await res.json()) as T;
+  // Retry rate limits and transient errors with a short backoff.
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`${API}${path}`, { headers: headers(), next: { revalidate }, signal: AbortSignal.timeout(30_000) });
+    if (res.ok) return (await res.json()) as T;
+    if (attempt < 3 && (res.status === 429 || res.status >= 500)) {
+      const wait = Number(res.headers.get("retry-after")) * 1000 || 800 * 2 ** attempt;
+      await new Promise((r) => setTimeout(r, Math.min(wait, 5000)));
+      continue;
+    }
+    throw new Error(`fal ${path.split("?")[0]}: HTTP ${res.status}`);
+  }
+}
+
+/** Unit prices for up to 50 endpoints, following pagination. */
+async function pricesFor(ids: string[]): Promise<FalPrice[]> {
+  const out: FalPrice[] = [];
+  let cursor: string | null = null;
+  for (let page = 0; page < 10; page++) {
+    const q = new URLSearchParams();
+    for (const id of ids) q.append("endpoint_id", id);
+    if (cursor) q.set("cursor", cursor);
+    const r = await api<{ prices?: FalPrice[]; next_cursor?: string | null; has_more?: boolean }>(`/models/pricing?${q}`);
+    out.push(...(r.prices ?? []));
+    if (!r.has_more || !r.next_cursor) break;
+    cursor = r.next_cursor;
+  }
+  return out;
 }
 
 type FalMeta = {
@@ -94,13 +118,10 @@ export async function listFalModels(): Promise<Model[]> {
 
   const prices = new Map<string, FalPrice>();
   for (let i = 0; i < usable.length; i += 50) {
-    const q = new URLSearchParams();
-    for (const m of usable.slice(i, i + 50)) q.append("endpoint_id", m.endpoint_id);
     try {
-      const r = await api<{ prices?: FalPrice[] }>(`/models/pricing?${q}`);
-      for (const p of r.prices ?? []) prices.set(p.endpoint_id, p);
+      for (const p of await pricesFor(usable.slice(i, i + 50).map((m) => m.endpoint_id))) prices.set(p.endpoint_id, p);
     } catch {
-      // keep going without these prices
+      // keep going; models without a price can't be run until it loads
     }
   }
 
@@ -224,8 +245,8 @@ export async function getFalModel(id: string): Promise<Model | undefined> {
     const item = r.models?.[0];
     if (!item || !SUPPORTED.includes(item.metadata?.category as Category)) return listed;
     const fields = fieldsFromOpenApi(item.openapi, endpoint) ?? undefined;
-    const price = listed?.falUnitPrice != null ? undefined : (await api<{ prices?: FalPrice[] }>(`/models/pricing?endpoint_id=${encodeURIComponent(endpoint)}`).catch(() => ({ prices: [] }))).prices?.[0];
-    const model = listed ? { ...listed, fields: fields ?? listed.fields } : toModel(item, price, fields);
+    const price = listed?.falUnitPrice != null ? undefined : (await pricesFor([endpoint]).catch(() => [] as FalPrice[]))[0];
+    const model = listed && !price ? { ...listed, fields: fields ?? listed.fields } : toModel(item, price, fields);
     schemaCache.set(id, { at: Date.now(), model });
     return model;
   } catch {
@@ -260,6 +281,8 @@ export function falInput(model: Model, input: Record<string, unknown>) {
 
 export async function falSubmit(model: Model, input: Record<string, unknown>) {
   const endpoint = model.falEndpoint!;
+  // Never run a model we can't price: we'd have no idea what to charge.
+  if (model.falUnitPrice == null) throw new Error(`${model.name}: price not available from fal right now. Please try again later or pick another model.`);
   const res = await fetch(`${QUEUE}/${endpoint}`, { method: "POST", headers: headers(), body: JSON.stringify(falInput(model, input)), cache: "no-store", signal: AbortSignal.timeout(60_000) });
   const j = (await res.json().catch(() => ({}))) as { request_id?: string; detail?: unknown; status?: string };
   if (!res.ok || !j.request_id) throw new Error(`fal (${endpoint}): ${describe(j, res.status)}`);
