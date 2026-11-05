@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Copy,
   Hand,
+  History,
   ImageIcon,
   Images,
   Loader2,
@@ -19,6 +20,7 @@ import {
   Play,
   Plus,
   Search,
+  Trash2,
   Upload,
   X,
   Zap,
@@ -28,6 +30,7 @@ import { FINAL, pollRun, startRun, upload, type JobView } from "@/lib/client";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { Media } from "./Media";
 import { AgentRail } from "./AgentRail";
+import { deleteChat, getChat, listChats, saveChat, type StoredChat } from "@/lib/chatStore";
 import { MediaPicker } from "./MediaPicker";
 import { Markdown } from "./Markdown";
 import { ModelPicker } from "./ModelPicker";
@@ -219,6 +222,10 @@ export function AgentChat() {
   const [filter, setFilter] = useState("");
   const [lightbox, setLightbox] = useState<{ url: string; kind: string } | null>(null);
   const started = useRef(false);
+  const [chatId] = useState(() => params.get("chat") || (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now())));
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<StoredChat[]>([]);
+  const loaded = useRef(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const jobsRef = useRef(jobs);
@@ -227,6 +234,46 @@ export function AgentChat() {
   }, [jobs]);
 
   const addJobs = useCallback((list: JobView[]) => setJobs((j) => ({ ...j, ...Object.fromEntries(list.map((x) => [x.request_id, x])) })), []);
+
+  // ---- chat history (browser storage) ----
+  useEffect(() => {
+    const id = params.get("chat");
+    if (id) {
+      const c = getChat(id);
+      if (c) {
+        started.current = true; // never re-send ?q= for a stored chat
+        setMsgs(c.msgs as Msg[]);
+        setJobs(c.jobs as Record<string, JobView>);
+      }
+    }
+    loaded.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!loaded.current || msgs.length === 0) return;
+    const t = setTimeout(() => {
+      const slimMsgs = msgs.map((m) => ({ ...m, steps: m.steps?.map((s) => ({ label: s.label, ms: s.ms, kind: s.kind })) }));
+      const slimJobs = Object.fromEntries(
+        Object.entries(jobs).map(([k, j]) => [k, { request_id: j.request_id, model_id: j.model_id, status: j.status, media: j.media, media_url: j.media_url, kind: j.kind, cost: j.cost, error: j.error }]),
+      );
+      const firstUser = msgs.find((m) => m.role === "user");
+      saveChat({ id: chatId, title: (firstUser?.content || "Image chat").slice(0, 80), updatedAt: Date.now(), msgs: slimMsgs, jobs: slimJobs });
+      // Keep the chat in the URL (and drop ?q= so a reload doesn't send the prompt again).
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("chat") !== chatId || url.searchParams.has("q")) {
+        url.searchParams.delete("q");
+        url.searchParams.set("chat", chatId);
+        window.history.replaceState(null, "", url.toString());
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [msgs, jobs, chatId]);
+
+  const openHistory = () => {
+    setHistory(listChats());
+    setHistoryOpen(true);
+  };
 
   // Poll every unfinished job.
   const pending = Object.values(jobs)
@@ -327,11 +374,58 @@ export function AgentChat() {
 
   return (
     <div className="flex h-[calc(100dvh-5.5rem)] overflow-hidden">
-      <AgentRail onTogglePanel={() => setPanel((p) => !p)} />
+      <AgentRail onTogglePanel={() => setPanel((p) => !p)} onHistory={openHistory} />
+      {historyOpen && (
+        <div className="fixed inset-0 z-50 flex" onClick={() => setHistoryOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <aside className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-line-2 bg-[#1c1c1c] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex h-12 items-center gap-2 border-b border-line px-4">
+              <History size={15} className="text-muted" />
+              <span className="flex-1 font-semibold">Chat history</span>
+              <a href="/agent" className="btn h-7 px-2 text-xs">
+                <Plus size={13} /> New
+              </a>
+              <button className="btn h-7 px-2" onClick={() => setHistoryOpen(false)} aria-label="Close">
+                <X size={14} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2">
+              {history.length === 0 ? (
+                <p className="p-4 text-center text-sm text-dim">No chats yet. Your conversations are saved on this device.</p>
+              ) : (
+                history.map((c) => (
+                  <div key={c.id} className={`group flex items-center gap-1 rounded-lg ${c.id === chatId ? "bg-panel-2" : "hover:bg-panel-2"}`}>
+                    <a href={`/agent?chat=${encodeURIComponent(c.id)}`} className="min-w-0 flex-1 px-3 py-2">
+                      <div className="truncate text-sm">{c.title}</div>
+                      <div className="text-xs text-dim">{new Date(c.updatedAt).toLocaleString()}</div>
+                    </a>
+                    <button
+                      className="mr-1 rounded p-1.5 text-dim opacity-0 transition hover:bg-[#2a2a2a] hover:text-[#ff9592] group-hover:opacity-100"
+                      title="Delete chat"
+                      onClick={() => {
+                        deleteChat(c.id);
+                        setHistory(listChats());
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            <p className="border-t border-line p-3 text-[11px] leading-relaxed text-dim">
+              History stays in this browser. Files you attach are deleted from our servers after 48 hours.
+            </p>
+          </aside>
+        </div>
+      )}
       {/* ---------- chat column ---------- */}
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-4 text-sm">
           <span className="min-w-0 flex-1 truncate font-medium">{title}</span>
+          <button className="btn h-8" onClick={openHistory} title="Chat history">
+            <History size={14} /> <span className="hidden sm:inline">History</span>
+          </button>
           <a href="/agent" className="btn h-8">
             <Plus size={14} /> New
           </a>

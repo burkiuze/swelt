@@ -1,6 +1,7 @@
 // Stores media in the public `media` bucket for the Swelt server.
 // Auth: the caller must send x-swelt-secret whose SHA-256 matches SECRET_SHA256 (same secret the DB RPCs use).
 // Body: JSON { source_url, path } to copy a remote file, or raw bytes with ?path=...&type=... to upload directly.
+// ?action=cleanup&prefix=uploads&hours=48 deletes files under <prefix>/ older than <hours> (max 5000 per call).
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SECRET_SHA256 = "08671251fbebfed4812e1c87b112aeaeefd889674ef1297420c853825de09425";
@@ -20,6 +21,7 @@ Deno.serve(async (req) => {
   if ((await sha256(secret)) !== SECRET_SHA256) return json({ error: "unauthorized" }, 401);
 
   const url = new URL(req.url);
+  if (url.searchParams.get("action") === "cleanup") return cleanup(url);
   let path = url.searchParams.get("path") || "";
   let type = url.searchParams.get("type") || "";
   let bytes: Uint8Array;
@@ -48,3 +50,48 @@ Deno.serve(async (req) => {
   const { data } = sb.storage.from("media").getPublicUrl(path);
   return json({ url: data.publicUrl, type });
 });
+
+const ALLOWED_PREFIXES = ["uploads", "outputs"];
+
+async function cleanup(url: URL) {
+  const prefix = url.searchParams.get("prefix") || "uploads";
+  const hours = Math.max(1, Number(url.searchParams.get("hours") || 48));
+  if (!ALLOWED_PREFIXES.includes(prefix)) return json({ error: "bad prefix" }, 400);
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const cutoff = Date.now() - hours * 3_600_000;
+  const old: string[] = [];
+  let scanned = 0;
+
+  // Walk <prefix>/ and one level of sub-folders (uploads/<user>/<file>).
+  const walk = async (dir: string, depth: number) => {
+    for (let offset = 0; old.length < 5000; offset += 1000) {
+      const { data, error } = await sb.storage.from("media").list(dir, { limit: 1000, offset, sortBy: { column: "created_at", order: "asc" } });
+      if (error) throw new Error(error.message);
+      if (!data?.length) break;
+      for (const o of data) {
+        const full = `${dir}/${o.name}`;
+        if (!o.id) {
+          if (depth < 2) await walk(full, depth + 1);
+          continue;
+        }
+        scanned++;
+        const t = new Date(o.created_at || o.updated_at || 0).getTime();
+        if (t && t < cutoff) old.push(full);
+      }
+      if (data.length < 1000) break;
+    }
+  };
+
+  try {
+    await walk(prefix, 0);
+    let removed = 0;
+    for (let i = 0; i < old.length; i += 500) {
+      const { data, error } = await sb.storage.from("media").remove(old.slice(i, i + 500));
+      if (error) throw new Error(error.message);
+      removed += data?.length ?? 0;
+    }
+    return json({ prefix, hours, scanned, removed });
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
+  }
+}
