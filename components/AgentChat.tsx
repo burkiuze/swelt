@@ -202,6 +202,8 @@ function Section({ title, count, icon, children }: { title: string; count: numbe
   );
 }
 
+const DIRECT_DEFAULT = { image: "qwen/qwen-image-3", video: "x-ai/grok-imagine-video-1.5-lite" } as const;
+
 /* ---------------- main ---------------- */
 
 export function AgentChat() {
@@ -209,6 +211,8 @@ export function AgentChat() {
   const [llm, setLlm] = useState<LlmKey>((LLMS.find((l) => l.key === params.get("llm"))?.key ?? "glm") as LlmKey);
   const [media, setMedia] = useState<string>(params.get("media") || "auto");
   const mediaKind = (["image", "video"].includes(params.get("kind") || "") ? params.get("kind") : undefined) as "image" | "video" | undefined;
+  // Image / Video mode: prompts go straight to the media model (no text model in between).
+  const direct = Boolean(mediaKind);
   const [effort, setEffort] = useState<Effort>((EFFORTS.includes(params.get("effort") as Effort) ? params.get("effort") : "medium") as Effort);
   const [approval, setApproval] = useState(params.get("approval") === "1");
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -299,6 +303,39 @@ export function AgentChat() {
       setSuggestion(null);
       setAttachments([]);
       setBusy(true);
+      if (direct && mediaKind) {
+        const modelId = media !== "auto" ? media : DIRECT_DEFAULT[mediaKind];
+        const model = getModel(modelId);
+        try {
+          if (!model) throw new Error("Pick a model first.");
+          const input: Record<string, unknown> = { prompt: content };
+          const has = (n: string) => model.fields.some((f) => f.name === n);
+          if (files.length) {
+            if (has("images")) input.images = files;
+            else if (has("image")) input.image = files[0];
+            else if (has("image_url")) input.image_url = files[0];
+            else if (has("image_references")) input.image_references = files;
+          }
+          const job = await startRun(model.id, input, "agent");
+          addJobs([job]);
+          setMsgs((m) => [
+            ...m,
+            {
+              role: "assistant",
+              content: job.status === "FAILED" ? `**${model.name}** failed: ${job.error || "unknown error"}` : `Generating with **${model.name}** · ${model.priceLabel}`,
+              jobIds: [job.request_id],
+              error: job.status === "FAILED",
+              at: Date.now(),
+            },
+          ]);
+          window.dispatchEvent(new Event("swelt:credits"));
+        } catch (e) {
+          setMsgs((m) => [...m, { role: "assistant", content: e instanceof Error ? e.message : String(e), error: true, at: Date.now() }]);
+        } finally {
+          setBusy(false);
+        }
+        return;
+      }
       // Never spin forever: give up a little before the server's own 300 s limit.
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 290_000);
@@ -334,7 +371,7 @@ export function AgentChat() {
         setBusy(false);
       }
     },
-    [msgs, llm, effort, approval, media, busy, addJobs],
+    [msgs, llm, effort, approval, media, busy, addJobs, direct, mediaKind],
   );
 
   useEffect(() => {
@@ -570,6 +607,7 @@ export function AgentChat() {
               >
                 {uploading ? <Loader2 size={15} className="animate-spin" /> : <Paperclip size={15} />}
               </button>
+              {!direct && (
               <button
                 onClick={() => setApproval((a) => !a)}
                 className={`flex items-center gap-1.5 rounded-md px-2 py-1 font-medium hover:bg-panel-2 ${approval ? "text-zinc-200" : "text-[#facc15]"}`}
@@ -577,8 +615,10 @@ export function AgentChat() {
               >
                 {approval ? <Hand size={14} /> : <Zap size={14} />} {approval ? "Ask for approval" : "Full auto"}
               </button>
+              )}
               <span className="flex-1" />
               <MediaPicker kind={mediaKind} value={media} onChange={setMedia} />
+              {!direct && (
               <ModelPicker
                 llm={llm}
                 effort={effort}
@@ -587,6 +627,7 @@ export function AgentChat() {
                   setEffort(v.effort);
                 }}
               />
+              )}
               <span className="flex items-center gap-1 px-1.5 text-muted" title="Outputs in this chat">
                 <Images size={14} /> {outputCount}
               </span>

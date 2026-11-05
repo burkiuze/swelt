@@ -13,6 +13,15 @@ export function AgentControls({ prefs, onChange, kind }: { prefs: AgentPrefs; on
   const latest = useRef(prefs);
   latest.current = prefs;
   const setLlm = useCallback((v: { llm: LlmKey; effort: Effort }) => onChange({ ...latest.current, ...v }), [onChange]);
+  // Image / Video tabs run the media model directly: no text model, no approval step.
+  if (kind) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
+        <span className="flex-1" />
+        <MediaPicker kind={kind} value={prefs.media} onChange={(media) => onChange({ ...prefs, media })} />
+      </div>
+    );
+  }
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
       <button
@@ -34,8 +43,8 @@ type Mode = "agent" | "image" | "video";
 
 const MODES: { key: Mode; label: string; icon: typeof Sparkles; badge?: string; placeholder: string; prefix: string }[] = [
   { key: "agent", label: "Agent", icon: Sparkles, placeholder: "Tell the agent what you want to make — it plans the steps and picks the models.", prefix: "" },
-  { key: "image", label: "Image", icon: ImageIcon, placeholder: "Describe the image: subject, style, light, framing…", prefix: "Create an image: " },
-  { key: "video", label: "Video", icon: Clapperboard, badge: "New", placeholder: "Describe the shot: what moves, camera, mood, length…", prefix: "Create a video: " },
+  { key: "image", label: "Image", icon: ImageIcon, placeholder: "Describe the image: subject, style, light, framing…", prefix: "" },
+  { key: "video", label: "Video", icon: Clapperboard, badge: "New", placeholder: "Describe the shot: what moves, camera, mood, length…", prefix: "" },
 ];
 
 const IDEAS: Record<Mode, { label: string; q: string; dot: string }[]> = {
