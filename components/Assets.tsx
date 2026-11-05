@@ -70,7 +70,7 @@ export function Assets() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setOpen(null)}>
           <div className="card grid max-h-[90vh] w-full max-w-5xl overflow-auto md:grid-cols-[2fr_1fr]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex min-h-[300px] items-center justify-center bg-sunken">
+            <div className="flex min-h-[300px] items-center justify-center bg-[#0c0c0e]">
               {open.media[0] ? <Media url={open.media[0]} kind={open.kind} /> : <span className="text-sm text-dim">{open.error || open.status}</span>}
             </div>
             <div className="space-y-3 p-5 text-sm">
@@ -80,7 +80,7 @@ export function Assets() {
               </div>
               <div className="text-muted">{open.status} · ${open.cost.toFixed(4)} · {open.created_at && new Date(open.created_at).toLocaleString()}</div>
               {open.media[0] && <MediaActions url={open.media[0]} />}
-              <pre className="max-h-80 overflow-auto rounded-lg bg-sunken p-3 text-xs text-zinc-400">{JSON.stringify(open.output ?? {}, null, 2)}</pre>
+              <pre className="max-h-80 overflow-auto rounded-lg bg-[#0c0c0e] p-3 text-xs text-zinc-400">{JSON.stringify(open.output ?? {}, null, 2)}</pre>
               <Link href={`/models/${open.model_id}`} className="btn w-full justify-center">Open in playground</Link>
             </div>
           </div>

@@ -81,7 +81,7 @@ export function PreviewsAdmin() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((i) => (
           <div key={i.model_id} className="card overflow-hidden">
-            <div className="flex aspect-video items-center justify-center bg-sunken">
+            <div className="flex aspect-video items-center justify-center bg-[#141414]">
               {i.preview ? <Media url={i.preview.url} kind={i.preview.kind} className="object-cover" /> : <span className="text-sm text-dim">No preview</span>}
             </div>
             <div className="space-y-2 p-3 text-sm">

@@ -39,7 +39,7 @@ export default async function AccountPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.image} alt="" referrerPolicy="no-referrer" className="h-14 w-14 rounded-lg object-cover" />
           ) : (
-            <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-2 text-xl font-semibold uppercase text-white">
+            <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#2b6cf6] text-xl font-semibold uppercase text-white">
               {(user?.name || caller.email || "?")[0]}
             </span>
           )}

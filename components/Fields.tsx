@@ -49,7 +49,7 @@ function UploadButton({ onUrl }: { onUrl: (u: string) => void }) {
 
 function Thumb({ url, onRemove }: { url: string; onRemove: () => void }) {
   return (
-    <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-line bg-panel-2">
+    <div className="relative h-16 w-16 overflow-hidden rounded-md border border-line bg-panel-2">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={url} alt="" className="h-full w-full object-cover" />
       <button type="button" onClick={onRemove} className="absolute right-0.5 top-0.5 rounded bg-black/70 p-0.5" aria-label="Remove">

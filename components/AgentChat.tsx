@@ -83,7 +83,7 @@ function Steps({ steps, ms }: { steps: Step[]; ms: number }) {
                 )}
               </div>
               {detail === i && (
-                <pre className="ml-7 mt-1.5 max-h-56 overflow-auto rounded-lg border border-line bg-sunken p-2.5 text-xs text-zinc-400">
+                <pre className="ml-7 mt-1.5 max-h-56 overflow-auto rounded-md border border-line bg-[#141414] p-2.5 text-xs text-zinc-400">
                   {JSON.stringify(s.detail, null, 2)}
                 </pre>
               )}
@@ -99,7 +99,7 @@ function MediaTile({ job, onOpen }: { job: JobView; onOpen: (u: string, kind: st
   const url = job.media[0];
   if (url)
     return (
-      <button onClick={() => onOpen(url, job.kind)} className="h-44 shrink-0 overflow-hidden rounded-lg bg-sunken">
+      <button onClick={() => onOpen(url, job.kind)} className="h-44 shrink-0 overflow-hidden rounded-md bg-[#141414]">
         {job.kind === "video" ? (
           <video src={url} autoPlay muted loop playsInline className="h-full w-auto" />
         ) : (
@@ -109,7 +109,7 @@ function MediaTile({ job, onOpen }: { job: JobView; onOpen: (u: string, kind: st
       </button>
     );
   return (
-    <div className={`flex h-44 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-lg p-3 text-center text-xs ${job.status === "FAILED" ? "border border-[#e5484d]/30 bg-[#e5484d]/5 text-[#ff9592]" : "shimmer text-muted"}`}>
+    <div className={`flex h-44 w-44 shrink-0 flex-col items-center justify-center gap-2 rounded-md p-3 text-center text-xs ${job.status === "FAILED" ? "border border-[#e5484d]/30 bg-[#e5484d]/5 text-[#ff9592]" : "shimmer text-muted"}`}>
       {job.status === "FAILED" ? (
         <span className="line-clamp-5">{job.error || "Failed"}</span>
       ) : (
@@ -128,13 +128,13 @@ function ProposalCard({ p, onRun }: { p: Proposal; onRun: (j: JobView) => void }
   const [err, setErr] = useState("");
   const model = getModel(p.model_id);
   return (
-    <div className="rounded-lg border border-line bg-panel p-3 text-sm">
+    <div className="rounded-md border border-line bg-panel p-3 text-sm">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium">{model?.name ?? p.model_id}</span>
         <span className="text-xs text-dim">{model?.priceLabel}</span>
       </div>
       {p.reason && <div className="mt-1 text-muted">{p.reason}</div>}
-      {typeof p.input.prompt === "string" && <div className="mt-2 line-clamp-3 rounded bg-sunken px-2.5 py-1.5 text-xs text-zinc-400">{p.input.prompt}</div>}
+      {typeof p.input.prompt === "string" && <div className="mt-2 line-clamp-3 rounded bg-[#141414] px-2.5 py-1.5 text-xs text-zinc-400">{p.input.prompt}</div>}
       {err && <div className="mt-2 text-xs text-[#ff9592]">{err}</div>}
       <div className="mt-2.5 flex gap-2">
         {state === "idle" && (
@@ -345,7 +345,7 @@ export function AgentChat() {
                   {m.attachments && m.attachments.length > 0 && (
                     <div className="flex gap-2">
                       {m.attachments.map((u) => (
-                        <button key={u} onClick={() => setLightbox({ url: u, kind: "image" })} className="h-28 overflow-hidden rounded-lg border border-line bg-white">
+                        <button key={u} onClick={() => setLightbox({ url: u, kind: "image" })} className="h-28 overflow-hidden rounded-md border border-line bg-white">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={u} alt="" className="h-full w-auto" />
                         </button>
@@ -404,7 +404,7 @@ export function AgentChat() {
                 {attachments.map((u, k) => (
                   <div key={k} className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={u} alt="" className="h-12 w-12 rounded-lg object-cover" />
+                    <img src={u} alt="" className="h-12 w-12 rounded-md object-cover" />
                     <button className="absolute -right-1 -top-1 rounded-full bg-black p-0.5" onClick={() => setAttachments((a) => a.filter((_, j) => j !== k))}>
                       <X size={11} />
                     </button>
@@ -433,7 +433,7 @@ export function AgentChat() {
               <button
                 onClick={() => send(text, attachments)}
                 disabled={busy || (!text.trim() && !attachments.length)}
-                className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2 text-white transition hover:brightness-110 disabled:bg-hover disabled:text-dim"
+                className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#ededed] text-black transition hover:bg-[#d4d4d4] disabled:bg-[#2a2a2a] disabled:text-dim"
                 aria-label="Send"
               >
                 {busy ? <Loader2 size={15} className="animate-spin" /> : <ArrowUp size={16} />}
@@ -452,7 +452,7 @@ export function AgentChat() {
                 }}
               />
               <button
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-panel-2 hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-panel-2 hover:text-white"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
                 title="Attach image"
@@ -461,7 +461,7 @@ export function AgentChat() {
               </button>
               <button
                 onClick={() => setApproval((a) => !a)}
-                className={`flex items-center gap-1.5 rounded-lg px-2 py-1 font-medium hover:bg-panel-2 ${approval ? "text-zinc-200" : "text-[#facc15]"}`}
+                className={`flex items-center gap-1.5 rounded-md px-2 py-1 font-medium hover:bg-panel-2 ${approval ? "text-zinc-200" : "text-[#facc15]"}`}
                 title="Full auto runs models immediately; Ask for approval shows a plan first"
               >
                 {approval ? <Hand size={14} /> : <Zap size={14} />} {approval ? "Ask for approval" : "Full auto"}
@@ -490,7 +490,7 @@ export function AgentChat() {
       {panel && (
         <aside className="hidden w-[320px] shrink-0 flex-col border-l border-line lg:flex">
           <div className="flex h-10 items-center gap-1 border-b border-line px-3 text-[13px]">
-            <span className="flex items-center gap-1.5 rounded-lg bg-panel-2 px-2.5 py-1 font-medium">
+            <span className="flex items-center gap-1.5 rounded-md bg-panel-2 px-2.5 py-1 font-medium">
               <ImageIcon size={14} /> Media
             </span>
             <span className="flex items-center gap-1.5 px-2.5 py-1 text-dim">
@@ -506,7 +506,7 @@ export function AgentChat() {
               {allAttachments.length ? (
                 <div className="grid grid-cols-3 gap-1.5">
                   {allAttachments.map((u) => (
-                    <button key={u} onClick={() => setLightbox({ url: u, kind: "image" })} className="aspect-square overflow-hidden rounded-lg bg-sunken">
+                    <button key={u} onClick={() => setLightbox({ url: u, kind: "image" })} className="aspect-square overflow-hidden rounded-md bg-[#141414]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={u} alt="" className="h-full w-full object-cover" />
                     </button>
@@ -523,7 +523,7 @@ export function AgentChat() {
                     <button
                       key={j.request_id}
                       onClick={() => setLightbox({ url: j.media[0], kind: j.kind })}
-                      className="relative aspect-square overflow-hidden rounded-lg bg-sunken"
+                      className="relative aspect-square overflow-hidden rounded-md bg-[#141414]"
                       title={j.model_id}
                     >
                       <Media url={j.media[0]} kind={j.kind} className="object-cover" />

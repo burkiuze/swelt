@@ -23,9 +23,9 @@ function Dashes({ values, color }: { values: number[]; color: string }) {
   const max = Math.max(1, ...values);
   const segs = values.flatMap((v) => [v, v, v]);
   return (
-    <div className="flex h-20 flex-1 items-end gap-[3px] rounded-xl bg-panel-2 p-2">
+    <div className="flex h-20 flex-1 items-end gap-[3px] rounded-md bg-[#232323] p-2">
       {segs.map((v, i) => (
-        <div key={i} className="flex-1 rounded-full" style={{ height: v ? `${12 + (v / max) * 80}%` : "5px", background: color }} />
+        <div key={i} className="flex-1 rounded-[1px]" style={{ height: v ? `${12 + (v / max) * 80}%` : "5px", background: color }} />
       ))}
     </div>
   );
@@ -46,12 +46,12 @@ export function Dashboard() {
 
   return (
     <div className="space-y-14">
-      <section className="card relative grid divide-y divide-line overflow-hidden lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+      <section className="card grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
         <div className="flex flex-col justify-between gap-6 p-5">
           <div className="flex gap-10">
             <div>
               <div className="text-sm text-muted">Credits balance</div>
-              <div className="text-gradient mt-1 text-2xl font-semibold">{s ? (s.unlimited ? "∞" : money(s.credits)) : "—"}</div>
+              <div className="mt-1 text-2xl font-semibold">{s ? (s.unlimited ? "∞" : money(s.credits)) : "—"}</div>
             </div>
             <div>
               <div className="text-sm text-muted">Cost estimate in the last 7 days</div>
@@ -71,7 +71,7 @@ export function Dashboard() {
             </div>
             <Link href="/usage" className="btn mt-6 self-start">Check usage</Link>
           </div>
-          <Dashes values={daily.map((d) => d.requests)} color="var(--color-accent)" />
+          <Dashes values={daily.map((d) => d.requests)} color="#6d4aff" />
         </div>
         <div className="flex gap-6 p-5">
           <div className="flex flex-col justify-between">
@@ -86,8 +86,7 @@ export function Dashboard() {
       </section>
 
       <section>
-        <div className="eyebrow">Start here</div>
-        <h2 className="mt-1 text-2xl font-semibold tracking-tight">Getting started</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Getting started</h2>
         <p className="mt-1 text-muted">Start exploring Vlipa&apos;s capabilities</p>
         <div className="card mt-6 grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
           <div className="space-y-5 p-5">
@@ -124,19 +123,16 @@ export function Dashboard() {
 
       <section>
         <div className="flex items-center justify-between">
-          <div>
-            <div className="eyebrow">Your work</div>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">Latest generations</h2>
-          </div>
+          <h2 className="text-2xl font-semibold tracking-tight">Latest generations</h2>
           <Link href="/assets" className="btn">See all <ArrowRight size={15} /></Link>
         </div>
         {items === null ? (
           <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer aspect-square rounded-2xl" />)}
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer aspect-square rounded-lg" />)}
           </div>
         ) : items.length === 0 ? (
           <div className="card mt-5 flex flex-col items-center gap-3 py-20 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent"><ImageIcon size={22} /></span>
+            <span className="flex h-12 w-12 items-center justify-center rounded-md bg-panel-2 text-muted"><ImageIcon size={22} /></span>
             <div className="text-lg font-semibold">Nothing here… yet.</div>
             <p className="max-w-md text-muted">Start your first generation and see your creations come to life. Try the Agent or pick a model to begin.</p>
             <div className="mt-2 flex gap-2">
@@ -147,8 +143,8 @@ export function Dashboard() {
         ) : (
           <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
             {items.map((g) => (
-              <Link key={g.request_id} href={`/assets?id=${g.request_id}`} className="card lift overflow-hidden p-1">
-                <div className="aspect-square overflow-hidden rounded-xl bg-panel-2">
+              <Link key={g.request_id} href={`/assets?id=${g.request_id}`} className="card overflow-hidden">
+                <div className="aspect-square bg-panel-2">
                   {g.media[0] ? <Media url={g.media[0]} kind={g.kind} className="object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-dim">{g.status}</div>}
                 </div>
                 <div className="truncate px-2.5 py-2 text-xs text-muted">{g.model_id}</div>
@@ -164,7 +160,7 @@ export function Dashboard() {
 function Step({ done, label, href, cta }: { done: boolean; label: string; href?: string; cta?: string }) {
   return (
     <div className="flex items-center gap-4">
-      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${done ? "bg-accent-soft text-accent" : "bg-panel-2"}`}>
+      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${done ? "bg-[#1f3326] text-[#4ade80]" : "bg-panel-2"}`}>
         {done && <Check size={16} />}
       </span>
       <span className={`flex-1 text-sm ${done ? "text-muted line-through" : ""}`}>{label}</span>
@@ -175,8 +171,8 @@ function Step({ done, label, href, cta }: { done: boolean; label: string; href?:
 
 function QuickLink({ href, icon: Icon, label }: { href: string; icon: typeof BookOpen; label: string }) {
   return (
-    <Link href={href} className="group flex items-center gap-3 rounded-lg text-sm hover:text-white">
-      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-panel-2 text-muted transition group-hover:bg-accent-soft group-hover:text-accent"><Icon size={15} strokeWidth={1.8} /></span>
+    <Link href={href} className="flex items-center gap-3 rounded-md text-sm hover:text-white">
+      <span className="flex h-7 w-7 items-center justify-center rounded-md bg-panel-2 text-muted"><Icon size={15} strokeWidth={1.8} /></span>
       <span>{label}</span>
     </Link>
   );

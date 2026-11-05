@@ -18,7 +18,7 @@ export function ModelsFrom() {
   }, []);
 
   return (
-    <div className="mx-auto flex w-fit items-center justify-center gap-3 rounded-full border border-line bg-panel/50 py-1 pl-4 pr-2 text-sm text-muted backdrop-blur">
+    <div className="flex items-center justify-center gap-3 text-sm text-muted">
       <span>Models from</span>
       <span className="relative h-8 w-44 overflow-hidden">
         {PROVIDERS.map((p, k) => (
