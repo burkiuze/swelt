@@ -24,8 +24,12 @@ export function RedeemForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not redeem the code");
-      const plan = data.plan ? `${String(data.plan)[0].toUpperCase()}${String(data.plan).slice(1)} plan activated. ` : "";
-      setMsg({ ok: true, text: `${plan}${creditsLabel(Number(data.added))} added. New balance: ${creditsLabel(Number(data.credits))}` });
+      if (data.plan === "code") {
+        setMsg({ ok: true, text: "Code membership activated. Open the Code tab to start." });
+      } else {
+        const plan = data.plan ? `${String(data.plan)[0].toUpperCase()}${String(data.plan).slice(1)} plan activated. ` : "";
+        setMsg({ ok: true, text: `${plan}${creditsLabel(Number(data.added))} added. New balance: ${creditsLabel(Number(data.credits))}` });
+      }
       setCode("");
       router.refresh();
       window.dispatchEvent(new Event("swelt:credits"));

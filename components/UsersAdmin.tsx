@@ -15,6 +15,7 @@ type Row = {
   expires: string | null;
   days_left: number | null;
   codes_redeemed: number;
+  code_days_left: number | null;
   created_at: string;
 };
 
@@ -60,8 +61,8 @@ export function UsersAdmin() {
 
   const exportCsv = () => {
     const rows = [
-      ["email", "username", "plan", "credits", "days_left", "plan_expires", "codes_redeemed", "joined"],
-      ...shown.map((u) => [u.email ?? "", u.username, u.plan, String(Math.round(u.credits * 1000)), u.days_left == null ? "" : String(u.days_left), u.expires ?? "", String(u.codes_redeemed), u.created_at]),
+      ["email", "username", "plan", "credits", "days_left", "plan_expires", "code_days_left", "codes_redeemed", "joined"],
+      ...shown.map((u) => [u.email ?? "", u.username, u.plan, String(Math.round(u.credits * 1000)), u.days_left == null ? "" : String(u.days_left), u.expires ?? "", u.code_days_left == null ? "" : String(u.code_days_left), String(u.codes_redeemed), u.created_at]),
     ];
     const blob = new Blob([rows.map((r) => r.map((v) => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" });
     const a = document.createElement("a");
@@ -128,19 +129,20 @@ export function UsersAdmin() {
               <th className="px-3 py-2 font-normal">Plan</th>
               <th className="px-3 py-2 text-right font-normal">Credits</th>
               <th className="px-3 py-2 text-right font-normal">Days left</th>
+              <th className="px-3 py-2 font-normal">Code</th>
               <th className="px-3 py-2 font-normal">Joined</th>
             </tr>
           </thead>
           <tbody>
             {items === null ? (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-dim">
+                <td colSpan={7} className="px-3 py-8 text-center text-dim">
                   Loading…
                 </td>
               </tr>
             ) : shown.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-dim">
+                <td colSpan={7} className="px-3 py-8 text-center text-dim">
                   No users.
                 </td>
               </tr>
@@ -158,6 +160,9 @@ export function UsersAdmin() {
                   <td className="px-3 py-2 text-right tabular-nums">{u.plan === "admin" ? "∞" : fmtCredits(u.credits)}</td>
                   <td className="px-3 py-2 text-right tabular-nums">
                     {u.days_left == null ? <span className="text-dim">—</span> : <span className={u.days_left <= 2 ? "text-[#ff9592]" : ""}>{u.days_left} days</span>}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {u.code_days_left == null ? <span className="text-dim">—</span> : <span className="rounded bg-[#10b981]/15 px-1.5 py-0.5 font-medium text-[#34d399]">{u.code_days_left} days</span>}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-xs text-dim">{new Date(u.created_at).toLocaleDateString()}</td>
                 </tr>

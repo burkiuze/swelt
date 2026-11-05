@@ -1,6 +1,6 @@
 import "server-only";
 import { dbEnabled, listCodes, type RedeemCode } from "./db";
-import { PLAN_DAYS, planOfCode, planRank, type PlanKey } from "./plans";
+import { CODE_PLAN, isCodeCode, PLAN_DAYS, planOfCode, planRank, type PlanKey } from "./plans";
 
 // The active plan is the best plan code the user redeemed in the last PLAN_DAYS days.
 let cache: { at: number; rows: RedeemCode[] } | null = null;
@@ -50,6 +50,30 @@ export async function plansByUser(): Promise<Map<string, { plan: PlanKey; expire
       }
     }
     out.set(c.redeemed_by, cur);
+  }
+  return out;
+}
+
+/** Code membership: active while a VLIPA-CODE- code was redeemed within CODE_PLAN.days. */
+export async function getCodeAccess(userId: string, isAdmin: boolean): Promise<{ active: boolean; expires: string | null }> {
+  if (isAdmin) return { active: true, expires: null };
+  if (!dbEnabled()) return { active: false, expires: null };
+  let expires: string | null = null;
+  for (const c of await redeemed().catch(() => [] as RedeemCode[])) {
+    if (c.redeemed_by !== userId || !c.redeemed_at || !isCodeCode(c.code)) continue;
+    const e = new Date(new Date(c.redeemed_at).getTime() + CODE_PLAN.days * 86_400_000).toISOString();
+    if (e > (expires ?? "")) expires = e;
+  }
+  return expires && new Date(expires).getTime() > Date.now() ? { active: true, expires } : { active: false, expires: null };
+}
+
+/** Code membership expiry per user id (admin users page). */
+export async function codeAccessByUser(): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  for (const c of await redeemed().catch(() => [] as RedeemCode[])) {
+    if (!c.redeemed_by || !c.redeemed_at || !isCodeCode(c.code)) continue;
+    const e = new Date(new Date(c.redeemed_at).getTime() + CODE_PLAN.days * 86_400_000).toISOString();
+    if (new Date(e).getTime() > Date.now() && e > (out.get(c.redeemed_by) ?? "")) out.set(c.redeemed_by, e);
   }
   return out;
 }

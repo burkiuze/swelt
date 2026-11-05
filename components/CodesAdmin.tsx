@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { PLANS } from "@/lib/plans";
+import { CODE_PLAN, PLANS } from "@/lib/plans";
 import { creditsLabel } from "@/lib/credits";
 import { Check, Copy, Download, Trash2 } from "lucide-react";
 
@@ -39,7 +39,7 @@ export function CodesAdmin() {
   const [items, setItems] = useState<Code[]>([]);
   const [count, setCount] = useState(10);
   const [credits, setCredits] = useState(20);
-  const [plan, setPlan] = useState<"" | "premium" | "pro" | "ultra">("pro");
+  const [plan, setPlan] = useState<"" | "premium" | "pro" | "ultra" | "code">("pro");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -124,6 +124,7 @@ export function CodesAdmin() {
                 {p.name} (${p.price})
               </option>
             ))}
+            <option value="code">Code (${CODE_PLAN.price}, {CODE_PLAN.dailyLimit} msg/day)</option>
             <option value="">Credits only</option>
           </select>
         </label>

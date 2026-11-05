@@ -2,7 +2,7 @@ import { getCaller, unauthorized } from "@/lib/auth";
 import { normalizeCode } from "@/lib/codes";
 import { dbEnabled, redeemCode } from "@/lib/db";
 import { forgetPlans } from "@/lib/planServer";
-import { planOfCode } from "@/lib/plans";
+import { isCodeCode, planOfCode } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const res = await redeemCode(caller.userId, caller.email, clean);
     attempts.delete(caller.userId);
     forgetPlans();
-    return Response.json({ ok: true, added: Number(res.added), credits: Number(res.credits), plan: planOfCode(clean) });
+    return Response.json({ ok: true, added: Number(res.added), credits: Number(res.credits), plan: isCodeCode(clean) ? "code" : planOfCode(clean) });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (/invalid_or_used/.test(msg)) {

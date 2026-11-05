@@ -45,3 +45,25 @@ export function modelAllowed(plan: PlanKey, model: { provider?: string }) {
   if (model.provider === "fal") return plan === "ultra";
   return plan === "pro" || plan === "ultra" || model.provider === "openrouter";
 }
+
+/* ---------------- Code membership (separate from the media plans) ---------------- */
+
+export const CODE_PLAN = {
+  key: "code" as const,
+  name: "Code",
+  price: 5,
+  was: 10,
+  days: PLAN_DAYS,
+  dailyLimit: 100,
+  blurb: "A fast coding assistant: 100 messages a day.",
+};
+
+// Coding models (OpenRouter slugs), always routed to the cheapest provider.
+export const CODE_MODELS = [
+  { key: "minimax", label: "MiniMax M3.1 Flash", vendor: "MiniMax", slug: "minimax/minimax-m3.1-flash" },
+  { key: "deepseek", label: "DeepSeek V4.1 Flash", vendor: "DeepSeek", slug: "deepseek/deepseek-v4.1-flash-1017" },
+  { key: "glm", label: "GLM 5.3 Flash", vendor: "Z.ai", slug: "z-ai/glm-5.3-flash" },
+] as const;
+export type CodeModelKey = (typeof CODE_MODELS)[number]["key"];
+
+export const isCodeCode = (code: string) => /^VLIPA-CODE-/i.test(code);

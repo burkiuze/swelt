@@ -5,7 +5,7 @@ import type { PlanKey } from "./plans";
 // No 0/O/1/I/L to avoid typos when codes are copied by hand.
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
-export function newCode(plan: PlanKey | null = null) {
+export function newCode(plan: PlanKey | "code" | null = null) {
   const group = () => Array.from({ length: 4 }, () => ALPHABET[randomInt(ALPHABET.length)]).join("");
   return `VLIPA-${plan && plan !== "free" ? `${plan.toUpperCase()}-` : ""}${group()}-${group()}-${group()}`;
 }

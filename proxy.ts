@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
-const PROTECTED = [/^\/assets/, /^\/agent/, /^\/usage/];
+const PROTECTED = [/^\/assets/, /^\/agent/, /^\/usage/, /^\/code/];
 
 // Paths only vulnerability scanners ask for.
 const SCANNER = /^\/(wp-|wordpress|xmlrpc\.php|phpmyadmin|pma\b|cgi-bin|\.env|\.git|\.aws|\.ssh|\.DS_Store|config\.php|admin\.php|vendor\/phpunit|server-status|actuator)/i;

@@ -2,6 +2,33 @@
 
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useRef, useState } from "react";
+import { Check, Copy } from "lucide-react";
+
+/** Fenced code block with a copy button. */
+function CodeBlock({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLPreElement>(null);
+  const [done, setDone] = useState(false);
+  return (
+    <div className="group relative my-2">
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard.writeText(ref.current?.innerText ?? "").then(() => {
+            setDone(true);
+            setTimeout(() => setDone(false), 1200);
+          });
+        }}
+        className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-line-2 bg-panel-2 px-2 py-1 text-[11px] text-muted opacity-80 transition hover:text-white group-hover:opacity-100"
+      >
+        {done ? <Check size={12} /> : <Copy size={12} />} {done ? "Copied" : "Copy"}
+      </button>
+      <pre ref={ref} className="overflow-x-auto rounded-lg border border-line bg-[#0c0c0e] p-3 pr-16 text-[12.5px] leading-relaxed">
+        {children}
+      </pre>
+    </div>
+  );
+}
 
 // Agent replies are Markdown. Raw HTML is never rendered (react-markdown escapes it by default).
 const components: Components = {
@@ -27,7 +54,7 @@ const components: Components = {
     ) : (
       <code className="rounded bg-panel-2 px-1.5 py-0.5 font-mono text-[12.5px] text-zinc-200">{children}</code>
     ),
-  pre: ({ children }) => <pre className="my-2 overflow-x-auto rounded-lg border border-line bg-[#0c0c0e] p-3 text-[12.5px] leading-relaxed">{children}</pre>,
+  pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
   table: ({ children }) => (
     <div className="my-2 overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">{children}</table>

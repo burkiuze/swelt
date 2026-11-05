@@ -1,6 +1,6 @@
 import { getCaller } from "@/lib/auth";
 import { errorResponse } from "@/lib/jobs";
-import { plansByUser } from "@/lib/planServer";
+import { codeAccessByUser, plansByUser } from "@/lib/planServer";
 import { listProfiles } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const caller = await getCaller(req);
   if (!caller || caller.via !== "session" || !caller.isAdmin) return Response.json({ error: "Admins only" }, { status: 403 });
   try {
-    const [profiles, plans] = await Promise.all([listProfiles(), plansByUser()]);
+    const [profiles, plans, code] = await Promise.all([listProfiles(), plansByUser(), codeAccessByUser()]);
     const admins = ADMINS();
     const now = Date.now();
     const items = profiles.map((p) => {
@@ -32,6 +32,7 @@ export async function GET(req: Request) {
         expires,
         days_left: daysLeft,
         codes_redeemed: pl?.codes ?? 0,
+        code_days_left: code.get(p.user_id) ? Math.max(0, Math.ceil((new Date(code.get(p.user_id)!).getTime() - now) / 86_400_000)) : null,
         created_at: p.created_at,
       };
     });

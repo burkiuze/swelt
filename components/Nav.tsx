@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountMenu, CreditsPill, type Me } from "./AccountMenu";
-import { Crown, FolderOpen, House, LayoutGrid, Search, Sparkles } from "lucide-react";
+import { Code2, Crown, FolderOpen, House, LayoutGrid, Search, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 
 const LINKS = [
@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/explore", label: "Explore", icon: LayoutGrid },
   { href: "/assets", label: "Assets", icon: FolderOpen },
   { href: "/agent", label: "Generate", icon: Sparkles },
+  { href: "/code", label: "Code", icon: Code2 },
   { href: "/pricing", label: "Pricing", icon: Crown },
 ];
 

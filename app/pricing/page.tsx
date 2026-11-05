@@ -4,7 +4,7 @@ import { getModel, MODELS } from "@/lib/catalog";
 import { creditsLabel } from "@/lib/credits";
 import { modelAllowed } from "@/lib/plans";
 import { LLMS } from "@/lib/llm";
-import { PLAN_DAYS, PLANS } from "@/lib/plans";
+import { CODE_MODELS, CODE_PLAN, PLAN_DAYS, PLANS } from "@/lib/plans";
 
 export const metadata = { title: "Pricing — Vlipa" };
 
@@ -139,6 +139,43 @@ export default function Page() {
           );
         })}
       </div>
+
+      <section id="code" className="mt-20 scroll-mt-24">
+        <h2 className="text-3xl font-semibold tracking-tight">Vlipa Code</h2>
+        <p className="mt-1 text-muted">A separate membership for coding. Not included in the media plans.</p>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
+          <div className="relative overflow-hidden rounded-3xl bg-[radial-gradient(120%_120%_at_0%_0%,#a7f3d0_0%,#10b981_40%,#065f46_100%)] p-6 shadow-[0_20px_60px_-20px_#10b981]">
+            <h3 className="text-4xl font-bold tracking-tight text-white">{CODE_PLAN.name}</h3>
+            <p className="mt-1 text-sm text-white/80">{CODE_PLAN.blurb}</p>
+            <div className="mt-6 flex items-baseline gap-3">
+              <span className="text-2xl font-semibold text-white/50 line-through decoration-2">${CODE_PLAN.was}</span>
+              <span className="text-5xl font-bold tracking-tight text-white">${CODE_PLAN.price}</span>
+              <span className="text-sm text-white/70">{CODE_PLAN.days} days</span>
+            </div>
+            <a
+              href={STORE || "/account#billing"}
+              target={STORE ? "_blank" : undefined}
+              rel={STORE ? "noreferrer" : undefined}
+              className="mt-6 flex h-12 items-center justify-center gap-2 rounded-2xl bg-white text-[15px] font-semibold text-black transition hover:bg-zinc-100"
+            >
+              Get Code <span className="rounded-full bg-[#e5484d] px-2 py-0.5 text-xs font-bold text-white">−50%</span>
+            </a>
+          </div>
+          <ul className="space-y-3 self-center text-[15px]">
+            {[
+              `${CODE_PLAN.dailyLimit} messages every day (resets at 00:00 Turkey time)`,
+              ...CODE_MODELS.map((m) => `${m.label} (${m.vendor})`),
+              "Streaming answers with copyable code blocks",
+              "Chat history saved in your browser",
+              `Active for ${CODE_PLAN.days} days after you redeem the code`,
+            ].map((x) => (
+              <li key={x} className="flex items-center gap-2.5">
+                <Check size={16} className="text-[#4ade80]" /> {x}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
       <section className="mt-20">
         <h2 className="text-3xl font-semibold tracking-tight">Compare plans</h2>
