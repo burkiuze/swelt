@@ -5,6 +5,12 @@
 export type OfficialPreview = { url: string; kind: "image" | "video"; source: string; license: string };
 
 export const OFFICIAL_PREVIEWS: Record<string, OfficialPreview> = {
+  "kwaivgi/kling-4.0": {
+    url: "https://pub-62cf7640cd0f4066b60933bd2e9b85ef.r2.dev/model-repo-media/awesome-kling-4-usecases/assets/cases/D31/video-94729ec66a60.mp4",
+    kind: "video",
+    source: "https://x.com/higgsfield_ai/status/2110928479734964409",
+    license: "CC BY 4.0 (awesome-kling-4-usecases, by @higgsfield_ai)",
+  },
   "google/nano-banana-pro-edit": {
     url: "/previews/nano-banana-pro-edit.webp",
     kind: "image",

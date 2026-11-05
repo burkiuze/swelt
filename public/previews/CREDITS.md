@@ -9,3 +9,4 @@ Real outputs of each model, reused under their licenses:
 | qwen-image-lora.webp | Qwen-Image (LoRA) | https://github.com/QwenLM/Qwen-Image/blob/main/assets/magicbeauty.png |
 | z-image-turbo.webp | Z-Image | https://github.com/Tongyi-MAI/Z-Image/blob/main/assets/showcase.jpg |
 | nano-banana-pro-edit.webp | Nano Banana Pro | Fluffy Plush Toy by @toolfolio (https://x.com/toolfolio/status/1992847853212012705), via https://github.com/PicoTrex/Awesome-Nano-Banana-images — CC BY 4.0 |
+| (remote video) | Kling 4.0 | "A sports car races along a coastal road" by @higgsfield_ai (https://x.com/higgsfield_ai/status/2110928479734964409), via https://github.com/cheercheung/awesome-kling-4-usecases — CC BY 4.0 |
