@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, KeyRound, LogOut, Moon, Settings, SunMedium, SunMoon } from "lucide-react";
+import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, KeyRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket } from "lucide-react";
 import { signOutAction } from "@/app/actions";
 
 export type Me = {
@@ -65,7 +65,7 @@ export function CreditsPill({ me }: { me: Me }) {
           <p className="mt-1 text-xs text-muted">Each run is charged at the provider&apos;s price.</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Link href="/usage" onClick={() => setOpen(false)} className="btn justify-center">Usage</Link>
-            <Link href="/account#billing" onClick={() => setOpen(false)} className="btn btn-primary justify-center">Add credits</Link>
+            <Link href="/account#billing" onClick={() => setOpen(false)} className="btn btn-primary justify-center">Redeem code</Link>
           </div>
         </div>
       )}
@@ -171,6 +171,12 @@ export function AccountMenu({ me }: { me: Me }) {
             <Link href="/account#notifications" onClick={close} className={item}>
               <Bell size={16} className="text-muted" /> Notifications
             </Link>
+            {me.unlimited && (
+              <Link href="/admin/codes" onClick={close} className={item}>
+                <Ticket size={16} className="text-muted" /> Redeem codes
+                <span className="ml-auto text-xs text-dim">Admin</span>
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-3 border-b border-line px-3.5 py-2.5">
             <SunMoon size={16} className="text-muted" /> Theme

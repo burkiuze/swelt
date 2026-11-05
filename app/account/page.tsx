@@ -4,6 +4,7 @@ import { Bell, CircleDollarSign, CircleUserRound, Settings } from "lucide-react"
 import { auth } from "@/auth";
 import { signOutAction } from "@/app/actions";
 import { ThemeSwitch } from "@/components/AccountMenu";
+import { RedeemForm } from "@/components/RedeemForm";
 import { getCaller } from "@/lib/auth";
 
 export const metadata = { title: "Account — Vlipa" };
@@ -61,7 +62,11 @@ export default async function AccountPage() {
           </div>
           <Link href="/usage" className="btn ml-auto">View usage</Link>
         </div>
-        <p className="mt-3 text-sm text-muted">Card top-ups are not available yet. To add credits, contact the Vlipa team.</p>
+        <RedeemForm />
+        <p className="mt-3 text-xs text-dim">Bought a Vlipa code? Enter it above and the credits are added to your balance instantly. Each code works once.</p>
+        {caller.isAdmin && (
+          <Link href="/admin/codes" className="btn mt-3">Manage redeem codes</Link>
+        )}
       </Section>
 
       <Section id="settings" icon={Settings} title="Settings">

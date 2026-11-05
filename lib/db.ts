@@ -106,3 +106,23 @@ export const getGenerationAny = async (id: string) => {
   const g = await rpc<Generation | null>("swelt_get_generation_any", { p_id: id });
   return g && g.id ? g : null;
 };
+
+export type RedeemCode = {
+  code: string;
+  credits: number;
+  note: string | null;
+  created_at: string;
+  redeemed_by: string | null;
+  redeemed_email: string | null;
+  redeemed_at: string | null;
+};
+
+export const createCodes = (codes: string[], credits: number, note: string | null) =>
+  rpc<number>("swelt_create_codes", { p_codes: codes, p_credits: credits, p_note: note ?? "" });
+
+export const redeemCode = (user: string, email: string | null, code: string) =>
+  rpc<{ added: number; credits: number }>("swelt_redeem_code", { p_user: user, p_email: email, p_code: code });
+
+export const listCodes = (limit = 300) => rpc<RedeemCode[]>("swelt_list_codes", { p_limit: limit });
+
+export const deleteCode = (code: string) => rpc<boolean>("swelt_delete_code", { p_code: code });
