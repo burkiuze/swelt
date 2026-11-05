@@ -5,6 +5,19 @@ import { ChevronRight, Search } from "lucide-react";
 import { LABS, MODELS, type Model } from "@/lib/catalog";
 import { ModelCard, type Preview } from "./ModelCard";
 
+const LAB_LOGOS: Record<string, string> = {
+  higgsfield: "/brand/labs/higgsfield.png",
+  kwaivgi: "/brand/labs/kwaivgi.svg",
+  google: "/brand/labs/google.svg",
+  "tongyi-mai": "/brand/labs/tongyi-mai.svg",
+  qwen: "/brand/labs/qwen.svg",
+  alibaba: "/brand/labs/alibaba.svg",
+  pruna: "/brand/labs/pruna.svg",
+  "black-forest-labs": "/brand/labs/black-forest-labs.svg",
+  minimax: "/brand/labs/minimax.svg",
+  vidu: "/brand/labs/vidu.svg",
+};
+
 const TABS = [
   { key: "all", label: "All" },
   { key: "image", label: "Image" },
@@ -65,10 +78,12 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
               setLab(lab === l ? null : l);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex h-28 w-36 shrink-0 flex-col items-center justify-center gap-1 rounded-lg border bg-panel text-sm transition hover:border-line-2 ${lab === l ? "border-[#8a8a8a]" : "border-line"}`}
+            className={`flex h-32 w-36 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border bg-panel text-sm transition hover:border-line-2 ${lab === l ? "border-[#8a8a8a]" : "border-line"}`}
           >
-            <span className="font-semibold">{l}</span>
-            <span className="text-xs text-dim">{MODELS.filter((m) => m.lab === l).length} models</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LAB_LOGOS[l] ?? ""} alt={l} className={`h-9 w-9 object-contain ${LAB_LOGOS[l] ? "" : "hidden"}`} />
+            <span className="mt-1.5 text-[13px] font-semibold">{l}</span>
+            <span className="text-[11px] text-dim">{MODELS.filter((m) => m.lab === l).length} models</span>
           </button>
         ))}
       </div>
