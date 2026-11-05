@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Show } from "@clerk/nextjs";
 import { Dashboard } from "@/components/Dashboard";
 import { LatestModels } from "@/components/LatestModels";
+import { ModelsFrom } from "@/components/ModelsFrom";
 import { PromptBox } from "@/components/PromptBox";
 
 export const revalidate = 60;
@@ -17,6 +18,9 @@ export default function Home() {
       </section>
       <div className="relative z-10 -mt-[60px] px-4 sm:px-6">
         <PromptBox />
+        <div className="mt-6">
+          <ModelsFrom />
+        </div>
       </div>
 
       <div className="mx-auto mt-12 max-w-[1400px] space-y-12 px-4 sm:px-6">
