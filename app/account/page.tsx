@@ -77,13 +77,6 @@ export default async function AccountPage() {
           </div>
           <ThemeSwitch />
         </div>
-        <div className="mt-4 flex items-center justify-between gap-4 text-sm">
-          <div>
-            <div className="font-medium">API keys</div>
-            <div className="text-xs text-dim">Call every model from your own code.</div>
-          </div>
-          <Link href="/keys" className="btn">Manage keys</Link>
-        </div>
       </Section>
 
       <Section id="notifications" icon={Bell} title="Notifications">

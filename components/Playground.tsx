@@ -1,37 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Check, ChevronDown, Code2, Copy, Loader2, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Loader2, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
 import type { Model } from "@/lib/catalog";
 import { FINAL, startRun, waitFor, type JobView } from "@/lib/client";
 import { FieldInput, initialValues } from "./Fields";
 import { Media, MediaActions } from "./Media";
 import { CategoryChip } from "./ModelCard";
 
-function useCopy() {
-  const [copied, setCopied] = useState(false);
-  return {
-    copied,
-    copy: (t: string) => {
-      navigator.clipboard.writeText(t);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    },
-  };
-}
 
-function CodeBlock({ code }: { code: string }) {
-  const { copied, copy } = useCopy();
-  return (
-    <div className="relative">
-      <button onClick={() => copy(code)} className="btn absolute right-2 top-2 px-2 py-1 text-xs">
-        {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy"}
-      </button>
-      <pre className="overflow-x-auto rounded-lg border border-line bg-[#0c0c0e] p-4 text-[13px] leading-relaxed text-zinc-300">{code}</pre>
-    </div>
-  );
-}
 
 export function Playground({ model, preview }: { model: Model; preview?: { url: string; kind: string; source?: string } | null }) {
   const pathname = usePathname();
@@ -42,7 +20,6 @@ export function Playground({ model, preview }: { model: Model; preview?: { url: 
       .then((d) => setSignedIn(Boolean(d.signedIn)))
       .catch(() => {});
   }, []);
-  const [tab, setTab] = useState<"playground" | "api">("playground");
   const [values, setValues] = useState(() => initialValues(model.fields));
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [job, setJob] = useState<JobView | null>(null);
@@ -91,43 +68,6 @@ export function Playground({ model, preview }: { model: Model; preview?: { url: 
     }
   };
 
-  const exampleInput = useMemo(() => {
-    const o: Record<string, unknown> = {};
-    for (const f of model.fields) {
-      if (f.name === "prompt") o.prompt = String(values.prompt || "a red fox in a glass sphere, cinematic lighting");
-      else if (f.required && f.type === "images") o[f.name] = ["https://example.com/reference.png"];
-      else if (f.required && f.type === "image") o[f.name] = "https://example.com/start.png";
-      else if (f.required) o[f.name] = values[f.name];
-    }
-    return o;
-  }, [model.fields, values]);
-
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://vlipa.dev";
-  const curl = `curl -X POST ${origin}/api/run \\
-  -H "Authorization: Key $SWELT_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '${JSON.stringify({ model: model.id, input: exampleInput })}'
-
-# → { "request_id": "…", "status": "IN_QUEUE", … }
-curl ${origin}/api/requests/<request_id> -H "Authorization: Key $SWELT_KEY"`;
-  const js = `const SWELT = "${origin}";
-const headers = { Authorization: \`Key \${process.env.SWELT_KEY}\`, "Content-Type": "application/json" };
-
-let job = await fetch(\`\${SWELT}/api/run\`, {
-  method: "POST",
-  headers,
-  body: JSON.stringify({
-    model: "${model.id}",
-    input: ${JSON.stringify(exampleInput, null, 2).replace(/\n/g, "\n    ")},
-  }),
-}).then((r) => r.json());
-
-while (!["COMPLETED", "FAILED"].includes(job.status)) {
-  await new Promise((r) => setTimeout(r, 2000));
-  job = await fetch(\`\${SWELT}/api/requests/\${job.request_id}\`, { headers }).then((r) => r.json());
-}
-console.log(job.media); // array of ${model.kind} URLs`;
-
   const media = job?.media ?? [];
   const busy = running || (job && !FINAL.includes(job.status));
 
@@ -148,16 +88,9 @@ console.log(job.media); // array of ${model.kind} URLs`;
             <span className="chip">{model.priceLabel}</span>
           </div>
         </div>
-        <div className="flex rounded-lg border border-line p-1">
-          {(["playground", "api"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm capitalize ${tab === t ? "bg-panel-2" : "text-muted"}`}>
-              {t === "api" ? <Code2 size={14} /> : <Play size={14} />} {t === "api" ? "API" : "Playground"}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {tab === "playground" ? (
+      {(
         <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <div className="card space-y-4 p-5">
             <div className="flex items-center justify-between">
@@ -239,42 +172,6 @@ console.log(job.media); // array of ${model.kind} URLs`;
                 <pre className="mt-2 max-h-72 overflow-auto rounded-lg bg-[#0c0c0e] p-3 text-xs text-zinc-400">{JSON.stringify(job, null, 2)}</pre>
               </details>
             )}
-          </div>
-        </div>
-      ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-3">
-            <h2 className="font-semibold">cURL</h2>
-            <CodeBlock code={curl} />
-            <p className="text-sm text-muted">
-              Create a key on the <a href="/keys" className="text-white underline underline-offset-2">API Keys</a> page. Requests are async: submit, then poll the request until it is <code>COMPLETED</code>.
-            </p>
-          </div>
-          <div className="space-y-3">
-            <h2 className="font-semibold">JavaScript</h2>
-            <CodeBlock code={js} />
-          </div>
-          <div className="space-y-3 lg:col-span-2">
-            <h2 className="font-semibold">Input schema</h2>
-            <div className="card overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted">
-                  <tr className="border-b border-line">
-                    <th className="p-3">Field</th><th className="p-3">Type</th><th className="p-3">Default</th><th className="p-3">Options</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {model.fields.map((f) => (
-                    <tr key={f.name} className="border-b border-line last:border-0">
-                      <td className="p-3 font-mono">{f.name}{f.required && <span className="text-[#ff9592]">*</span>}</td>
-                      <td className="p-3 text-muted">{f.type === "images" ? "string[] (URLs)" : f.type === "image" ? "string (URL)" : f.type === "seed" ? "integer" : f.type}</td>
-                      <td className="p-3 text-muted">{f.default === undefined || f.default === "" ? "—" : String(f.default)}</td>
-                      <td className="p-3 text-muted">{f.options?.join(", ") || (f.min !== undefined ? `${f.min}–${f.max}` : "—")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       )}

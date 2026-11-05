@@ -11,8 +11,7 @@ export function Footer() {
       <span>© {new Date().getFullYear()} Vlipa</span>
       <span className="flex gap-5">
         <a href="/explore" className="hover:text-white">Models</a>
-        <a href="/docs" className="hover:text-white">Docs</a>
-        <a href="/keys" className="hover:text-white">API keys</a>
+        <a href="/agent" className="hover:text-white">Agent</a>
       </span>
     </footer>
   );

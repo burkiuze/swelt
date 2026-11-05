@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { FolderOpen, History, KeyRound, LayoutGrid, MessageSquare, PanelLeft, Plus, Settings } from "lucide-react";
+import { FolderOpen, History, LayoutGrid, PanelLeft, Plus, Settings } from "lucide-react";
 
 const ITEMS = [
   { href: "/agent", icon: Plus, label: "New generation", reload: true },
   { href: "/usage", icon: History, label: "History" },
   { href: "/assets", icon: FolderOpen, label: "Assets" },
   { href: "/explore", icon: LayoutGrid, label: "Models" },
-  { href: "/keys", icon: KeyRound, label: "API keys" },
-  { href: "/docs", icon: MessageSquare, label: "Docs" },
 ];
 
 /** Icon rail on the left of the agent. */

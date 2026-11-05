@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, KeyRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket } from "lucide-react";
+import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket } from "lucide-react";
 import { signOutAction } from "@/app/actions";
 
 export type Me = {
@@ -160,9 +160,6 @@ export function AccountMenu({ me }: { me: Me }) {
             </Link>
             <Link href="/account#settings" onClick={close} className={item}>
               <Settings size={16} className="text-muted" /> Settings
-            </Link>
-            <Link href="/keys" onClick={close} className={item}>
-              <KeyRound size={16} className="text-muted" /> API Keys
             </Link>
             <Link href="/usage" onClick={close} className={item}>
               <CircleDollarSign size={16} className="text-muted" /> Credits

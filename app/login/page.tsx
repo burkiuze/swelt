@@ -52,7 +52,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </Link>
       <nav className="absolute right-5 top-6 z-10 hidden gap-5 text-sm text-white/80 sm:flex">
         <Link href="/explore" className="hover:text-white">Models</Link>
-        <Link href="/docs" className="hover:text-white">Docs</Link>
       </nav>
 
       <div className="relative z-10 w-full max-w-[380px] rounded-2xl border border-white/10 bg-[#141414]/80 p-7 shadow-2xl shadow-black/50 backdrop-blur-xl">

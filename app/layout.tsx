@@ -8,7 +8,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Vlipa — generative media platform",
   description:
-    "Run the best image and video models in the browser or from code. Powered by RunPod, with an AI agent on Claude Opus 5.5 and GPT-6.1 Sol.",
+    "Create images and videos with the best AI models, or let the Vlipa Agent do it for you. Powered by RunPod, with an AI agent on Claude Opus 5.5 and GPT-6.1 Sol.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

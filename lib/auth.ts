@@ -21,18 +21,9 @@ export function newApiKey() {
   return { raw, prefix: raw.slice(0, 10), hash: hashKey(raw) };
 }
 
-/** Resolve the caller from a Vlipa session or an `Authorization: Key swk_...` header. */
+/** Resolve the caller from the Vlipa session (API keys are disabled). */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getCaller(req?: Request): Promise<Caller | null> {
-  const header = req?.headers.get("authorization") || "";
-  const m = header.match(/^(?:Key|Bearer)\s+(swk_[A-Za-z0-9_-]+)$/);
-  if (m && dbEnabled()) {
-    const userId = await resolveApiKey(hashKey(m[1]));
-    if (!userId) return null;
-    const profile = await ensureProfile(userId, null, freeCredits());
-    const email = profile.email;
-    return { userId, email, via: "key", profile, isAdmin: !!email && adminEmails().includes(email.toLowerCase()) };
-  }
-
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return null;
@@ -41,6 +32,6 @@ export async function getCaller(req?: Request): Promise<Caller | null> {
   return { userId, email, via: "session", profile, isAdmin: !!email && adminEmails().includes(email.toLowerCase()) };
 }
 
-export function unauthorized(msg = "Sign in or pass `Authorization: Key <your-api-key>`") {
+export function unauthorized(msg = "Sign in to continue") {
   return Response.json({ error: msg }, { status: 401 });
 }

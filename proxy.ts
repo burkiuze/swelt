@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-const PROTECTED = [/^\/assets/, /^\/keys/, /^\/agent/, /^\/usage/, /^\/previews/];
+const PROTECTED = [/^\/assets/, /^\/agent/, /^\/usage/, /^\/previews/];
 
 export default auth((req) => {
   const { pathname, search } = req.nextUrl;

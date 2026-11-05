@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, BookOpen, Check, CircleDollarSign, FileText, ImageIcon, KeyRound, LayoutGrid, ReceiptText } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CircleDollarSign, FileText, ImageIcon, LayoutGrid, ReceiptText } from "lucide-react";
 import { getModel } from "@/lib/catalog";
 import { Media } from "./Media";
 import { ModelRow } from "./ModelCard";
@@ -101,12 +101,12 @@ export function Dashboard() {
           <div className="space-y-5 p-5">
             <div>
               <h3 className="text-base font-semibold">Ways to create</h3>
-              <p className="mt-1 text-sm text-muted">Chat with the agent, open a model, or use the API.</p>
+              <p className="mt-1 text-sm text-muted">Chat with the agent or open any model.</p>
             </div>
             <QuickLink href="/agent" icon={LayoutGrid} label="Open the Agent" />
-            <QuickLink href="/keys" icon={KeyRound} label="Create an API key" />
-            <QuickLink href="/docs" icon={FileText} label="Your first API call in 2 minutes" />
-            <QuickLink href="/docs" icon={BookOpen} label="Read the docs" />
+            <QuickLink href="/explore" icon={ImageIcon} label="Try an image model" />
+            <QuickLink href="/assets" icon={FileText} label="See your assets" />
+            <QuickLink href="/account#billing" icon={CircleDollarSign} label="Redeem a credit code" />
           </div>
           <div className="space-y-5 p-5">
             <div>
