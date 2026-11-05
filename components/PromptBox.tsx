@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowUp, Hand, ImageIcon, Plus, TextQuote } from "lucide-react";
+import { ArrowUp, Hand, ImageIcon, Mic, Plus, TextQuote } from "lucide-react";
 import type { Effort, LlmKey } from "@/lib/llm";
 import { ModelPicker } from "./ModelPicker";
 
@@ -29,9 +29,10 @@ export function AgentControls({ prefs, onChange }: { prefs: AgentPrefs; onChange
 }
 
 const IDEAS = [
-  { label: "Create different game environments from one concept", q: "Create 3 different game environment concepts (forest, snowy mountains, desert ruins) for the same stylized fantasy world, then animate the best one.", g: ["#7c9a5b", "#cbd5e1", "#3f3f46"] },
-  { label: "Create a polished campaign image for a perfume", q: "Create a polished, premium campaign image for a minimalist perfume bottle on golden silk, soft studio light.", g: ["#d4a256", "#7c5320", "#1c1917"] },
-  { label: "Create product images from different camera angles", q: "Create product images of a glass water bottle from 3 different camera angles on a clean studio background.", g: ["#94a3b8", "#334155", "#0f172a"] },
+  { label: "Turn a sketch idea into a cute 3D character", q: "Create a cute crocheted toy character of a yellow duck, studio photo, then make 3 color variations.", img: "/previews/flux-1-dev.webp" },
+  { label: "Create different game environments from one concept", q: "Create 3 different game environment concepts (underwater reef, snowy mountains, desert ruins) for the same stylized fantasy world, then animate the best one.", img: "/previews/flux-1-schnell.webp" },
+  { label: "Upload a photo to create a stylized portrait", q: "Turn my attached photo into a warm, film-look portrait with soft window light.", img: "/previews/qwen-image-lora.webp" },
+  { label: "Create a travel poster from a landscape", q: "Create a minimalist travel poster of a Himalayan peak at sunrise with prayer flags.", img: "/previews/z-image-turbo.webp" },
 ];
 
 export function PromptBox() {
@@ -46,11 +47,11 @@ export function PromptBox() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1300px]">
-      <div className="overflow-hidden rounded-lg border border-line bg-panel">
-        <div className="flex items-center gap-3 p-3">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-[#141414] text-muted">
-            <TextQuote size={20} strokeWidth={1.8} />
+    <div className="mx-auto w-full max-w-[960px]">
+      <div className="rounded-lg border border-line-2 bg-[#252525] shadow-lg shadow-black/20">
+        <div className="flex items-center gap-3 p-2">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#1a1a1a] text-muted">
+            <TextQuote size={18} strokeWidth={1.8} />
           </span>
           <textarea
             value={text}
@@ -63,27 +64,26 @@ export function PromptBox() {
             }}
             rows={1}
             placeholder="Describe what you want to generate…"
-            className="flex-1 resize-none bg-transparent py-3 text-lg outline-none placeholder:text-dim"
+            className="flex-1 resize-none bg-transparent py-2.5 text-[17px] outline-none placeholder:text-dim"
           />
-          <button onClick={() => go()} disabled={!text.trim()} className="flex h-12 w-12 items-center justify-center rounded-md bg-[#2a2a2a] text-white transition hover:bg-[#333] disabled:text-dim" aria-label="Send">
-            <ArrowUp size={20} />
+          <Mic size={18} className="shrink-0 text-muted" />
+          <button onClick={() => go()} disabled={!text.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#333] text-white transition hover:bg-[#3d3d3d] disabled:text-dim" aria-label="Send">
+            <ArrowUp size={18} />
           </button>
         </div>
-        <div className="flex items-center gap-4 border-t border-line px-4 py-2.5">
-          <Plus size={18} className="text-dim" />
+        <div className="flex items-center gap-2 border-t border-line px-3 py-1.5">
+          <Plus size={16} className="text-dim" />
           <div className="flex-1">
             <AgentControls prefs={prefs} onChange={setPrefs} />
           </div>
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="scrollbar-none mt-3 flex gap-3 overflow-x-auto">
         {IDEAS.map((i) => (
-          <button key={i.label} onClick={() => go(i.q)} className="card flex items-center gap-4 overflow-hidden text-left transition hover:border-line-2">
-            <span
-              className="grain h-20 w-24 shrink-0"
-              style={{ background: `radial-gradient(60% 70% at 30% 30%, ${i.g[0]} 0%, transparent 70%), radial-gradient(60% 70% at 80% 80%, ${i.g[1]} 0%, transparent 70%), ${i.g[2]}` }}
-            />
-            <span className="pr-4 text-[17px] font-semibold leading-snug">{i.label}</span>
+          <button key={i.label} onClick={() => go(i.q)} className="flex h-[72px] w-[300px] shrink-0 items-center gap-3 overflow-hidden rounded-md bg-[#232323] text-left transition hover:bg-[#2a2a2a]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={i.img} alt="" className="h-full w-[72px] shrink-0 object-cover" />
+            <span className="line-clamp-2 pr-3 text-[15px] font-semibold leading-snug">{i.label}</span>
           </button>
         ))}
       </div>

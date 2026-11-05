@@ -53,34 +53,52 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
   const browsing = !q && tab === "all" && !lab;
 
+  const labs = (
+    <section>
+      <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Model Labs</h2>
+      <p className="mt-2 text-lg text-muted">Explore the AI labs powering models on Swelt</p>
+      <div className="scrollbar-none mt-6 flex gap-3 overflow-x-auto">
+        {LABS.map((l) => (
+          <button
+            key={l}
+            onClick={() => {
+              setLab(lab === l ? null : l);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex h-28 w-36 shrink-0 flex-col items-center justify-center gap-1 rounded-lg border bg-panel text-sm transition hover:border-line-2 ${lab === l ? "border-[#8a8a8a]" : "border-line"}`}
+          >
+            <span className="font-semibold">{l}</span>
+            <span className="text-xs text-dim">{MODELS.filter((m) => m.lab === l).length} models</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+
   return (
     <div className="space-y-16">
-      <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dim" size={18} />
-          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models, e.g. “image editing”, “video with audio”…" className="input h-12 pl-10 text-base" />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dim" size={15} />
+          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models" className="input h-9 pl-9" />
         </div>
-        <div className="scrollbar-none flex gap-2 overflow-x-auto">
+        <div className="scrollbar-none flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)} className={`btn shrink-0 ${tab === t.key ? "border-[#ededed] bg-[#ededed] text-black hover:bg-[#d4d4d4]" : "text-muted"}`}>
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`h-9 shrink-0 rounded-md px-3 text-sm font-medium transition ${tab === t.key ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}
+            >
               {t.label}
             </button>
           ))}
         </div>
+        {lab && (
+          <button onClick={() => setLab(null)} className="h-9 rounded-md bg-panel-2 px-3 text-sm">
+            {lab} ✕
+          </button>
+        )}
       </div>
-
-      <section>
-        <h2 className="text-lg font-semibold">Model Labs</h2>
-        <p className="text-sm text-muted">Explore the AI labs powering models on Swelt</p>
-        <div className="scrollbar-none mt-3 flex gap-2 overflow-x-auto">
-          {LABS.map((l) => (
-            <button key={l} onClick={() => setLab(lab === l ? null : l)} className={`card shrink-0 px-4 py-3 text-sm ${lab === l ? "border-[#6b6b6b] bg-panel-2" : ""}`}>
-              <div className="font-semibold">{l}</div>
-              <div className="text-xs text-dim">{MODELS.filter((m) => m.lab === l).length} models</div>
-            </button>
-          ))}
-        </div>
-      </section>
 
       {browsing ? (
         <>
@@ -88,6 +106,7 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
           <Section title="Video" subtitle="Text-to-video, image-to-video and video editing." previews={previews} models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
           <Section title="Image editing" subtitle="Edit images with reference photos and instructions." previews={previews} models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
           <Section title="Text to image" subtitle="Fast drafts to premium renders." previews={previews} models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
+          {labs}
         </>
       ) : filtered.length ? (
         <Section previews={previews} title={`${filtered.length} model${filtered.length === 1 ? "" : "s"}`} models={filtered} />

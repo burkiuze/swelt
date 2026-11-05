@@ -9,13 +9,13 @@ export const revalidate = 60;
 export default function Home() {
   return (
     <div>
-      <section className="hero-bg grain px-4 pb-32 pt-20 text-center sm:pt-28">
-        <h1 className="relative text-5xl font-bold tracking-[-0.04em] text-[#1a1a1a] sm:text-7xl">Bring your ideas to life.</h1>
-        <p className="relative mx-auto mt-5 max-w-xl text-lg leading-relaxed text-[#4a4a4a]">
+      <section className="hero-bg grain px-4 pb-28 pt-16 text-center sm:pt-24">
+        <h1 className="relative text-5xl font-bold tracking-[-0.045em] text-[#1a1a1a] sm:text-[68px]">Bring your ideas to life.</h1>
+        <p className="relative mx-auto mt-4 max-w-md text-[17px] leading-relaxed text-[#4a4a4a]">
           Describe in detail what you want to create and the Swelt Agent will bring the right models for the next steps.
         </p>
       </section>
-      <div className="relative z-10 -mt-24 px-4 sm:px-7">
+      <div className="relative z-10 -mt-[72px] px-4 sm:px-7">
         <PromptBox />
       </div>
 

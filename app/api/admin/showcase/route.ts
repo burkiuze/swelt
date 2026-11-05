@@ -7,6 +7,9 @@ import { getPreviews } from "@/lib/showcase";
 
 export const dynamic = "force-dynamic";
 
+// Static previews are site-relative; models need absolute URLs.
+const abs = (req: Request, u?: string) => (u && u.startsWith("/") ? new URL(u, req.url).toString() : u);
+
 async function admin(req: Request) {
   const c = await getCaller(req);
   return c && c.isAdmin && c.via === "session" ? c : null;
@@ -16,7 +19,7 @@ async function admin(req: Request) {
 export async function GET(req: Request) {
   if (!(await admin(req))) return unauthorized("Admins only");
   const previews = await getPreviews();
-  const base = { image: previews[BASE_IMAGE_MODEL]?.url, video: previews[BASE_VIDEO_MODEL]?.url };
+  const base = { image: abs(req, previews[BASE_IMAGE_MODEL]?.url), video: abs(req, previews[BASE_VIDEO_MODEL]?.url) };
   return Response.json({
     items: MODELS.map((m) => {
       const needs = sampleNeeds(m);
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
     const model = getModel(String(body.model_id || ""));
     if (!model) return Response.json({ error: "Unknown model" }, { status: 404 });
     const previews = await getPreviews();
-    const input = sampleInput(model, { image: previews[BASE_IMAGE_MODEL]?.url, video: previews[BASE_VIDEO_MODEL]?.url });
+    const input = sampleInput(model, { image: abs(req, previews[BASE_IMAGE_MODEL]?.url), video: abs(req, previews[BASE_VIDEO_MODEL]?.url) });
     return Response.json(await startJob(caller, model.id, input, "showcase"));
   } catch (e) {
     return errorResponse(e);

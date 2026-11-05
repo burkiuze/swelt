@@ -33,7 +33,7 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
-export function Playground({ model, preview }: { model: Model; preview?: { url: string; kind: string } | null }) {
+export function Playground({ model, preview }: { model: Model; preview?: { url: string; kind: string; source?: string } | null }) {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
   const [tab, setTab] = useState<"playground" | "api">("playground");
@@ -211,7 +211,15 @@ console.log(job.media); // array of ${model.kind} URLs`;
               ) : preview ? (
                 <div className="relative flex h-full w-full items-center justify-center">
                   <Media url={preview.url} kind={preview.kind} />
-                  <span className="absolute left-3 top-3 rounded bg-black/60 px-2 py-0.5 text-xs text-zinc-300">Example output</span>
+                  <span className="absolute left-3 top-3 rounded bg-black/60 px-2 py-0.5 text-xs text-zinc-300">
+                    Example output
+                    {preview.source && (
+                      <>
+                        {" · "}
+                        <a href={preview.source} target="_blank" rel="noreferrer" className="underline">official sample</a>
+                      </>
+                    )}
+                  </span>
                 </div>
               ) : (
                 <div className="text-sm text-dim">Your {model.kind} will appear here.</div>
