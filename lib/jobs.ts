@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import type { Caller } from "./auth";
-import { getModel, MARKUP, type Model } from "./catalog";
+import { getModel, markup, type Model } from "./catalog";
 import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
 import { HF_PREFIX, hfMedia, hfStatus, hfSubmit } from "./higgsfield";
 import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit } from "./openrouter-media";
@@ -62,7 +62,7 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
         status: r.media.length ? "COMPLETED" : "FAILED",
         output: r.output,
         media: r.media,
-        cost: r.cost != null ? r.cost * MARKUP : model.price,
+        cost: r.cost != null ? markup(r.cost / Math.max(1, r.media.length)) * Math.max(1, r.media.length) : model.price,
         error: r.media.length ? null : "Model finished but returned no media",
         charge: !caller.isAdmin,
       });
@@ -109,7 +109,15 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
     }
     const seconds = Number(gen.input?.duration) || 5;
     const reported = isOr ? orCost(job.output) : extractCost(job.output);
-    const cost = reported != null ? reported * MARKUP : model.perSecond ? model.perSecond * seconds : model.price;
+    // Video prices are per second, so apply the margin to the per-second cost.
+    const cost =
+      reported != null
+        ? model.perSecond
+          ? markup(reported / seconds) * seconds
+          : markup(reported)
+        : model.perSecond
+          ? model.perSecond * seconds
+          : model.price;
     const error = media.length ? null : "Model finished but returned no media";
     gen = await finish(gen, { status: media.length ? "COMPLETED" : "FAILED", output: job.output, media, cost, error, charge: !caller.isAdmin });
     // Admin runs become model previews: "showcase" runs replace the preview, others only fill a missing one.

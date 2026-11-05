@@ -718,19 +718,27 @@ const BASE_MODELS: Model[] = [
 ];
 
 
-/** Vlipa's margin on top of each provider's price (credits charged = provider cost × MARKUP). */
-export const MARKUP = 1.2;
-const up = (n: number) => Math.round(n * MARKUP * 10000) / 10000;
-const money = (n: number) => (n >= 1 ? n.toFixed(2) : String(Number(n.toPrecision(2))));
-const markLabel = (l: string) => l.replace(/\$([\d.]+)/, (_, n: string) => `$${money(Number(n) * MARKUP)}`);
+/**
+ * Vlipa's margin on a provider unit price (per image, per second or per run):
+ * prices from $0.01 up to $0.099 get a flat +$0.01, everything else +20%.
+ */
+export function markup(unit: number) {
+  const v = unit >= 0.01 && unit < 0.1 ? unit + 0.01 : unit * 1.2;
+  return Math.round(v * 10000) / 10000;
+}
+const money = (n: number) => (n >= 1 ? n.toFixed(2) : String(Number(n.toPrecision(3))));
+const markLabel = (l: string) => l.replace(/\$([\d.]+)/, (_, n: string) => `$${money(markup(Number(n)))}`);
 
 /** The catalog with the prices users are charged. */
-export const MODELS: Model[] = BASE_MODELS.map((m) => ({
-  ...m,
-  price: up(m.price),
-  perSecond: m.perSecond ? up(m.perSecond) : undefined,
-  priceLabel: markLabel(m.priceLabel),
-}));
+export const MODELS: Model[] = BASE_MODELS.map((m) => {
+  const perSecond = m.perSecond ? markup(m.perSecond) : undefined;
+  return {
+    ...m,
+    perSecond,
+    price: perSecond ? Math.round(perSecond * 5 * 10000) / 10000 : markup(m.price),
+    priceLabel: markLabel(m.priceLabel),
+  };
+});
 
 export const LABS = Array.from(new Set(MODELS.map((m) => m.lab)));
 
