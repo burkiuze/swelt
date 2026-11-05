@@ -1,9 +1,16 @@
-// Sample outputs published by the model authors in their official GitHub repositories
-// (all Apache-2.0). Cropped and resized into /public/previews. A preview generated in
-// Swelt (Previews page) takes priority over these.
+// Real outputs of each model found online under licenses that allow reuse: the model
+// authors' official repositories (Apache-2.0) and the CC BY 4.0 Awesome-Nano-Banana-images
+// gallery. Cropped and resized into /public/previews and credited in CREDITS.md.
+// These take priority over previews generated in Swelt.
 export type OfficialPreview = { url: string; kind: "image" | "video"; source: string; license: string };
 
 export const OFFICIAL_PREVIEWS: Record<string, OfficialPreview> = {
+  "google/nano-banana-pro-edit": {
+    url: "/previews/nano-banana-pro-edit.webp",
+    kind: "image",
+    source: "https://x.com/toolfolio/status/1992847853212012705",
+    license: "CC BY 4.0 (Awesome-Nano-Banana-images, by @toolfolio)",
+  },
   "black-forest-labs/flux-1-schnell": {
     url: "/previews/flux-1-schnell.webp",
     kind: "image",

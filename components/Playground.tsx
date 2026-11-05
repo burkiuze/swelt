@@ -216,7 +216,7 @@ console.log(job.media); // array of ${model.kind} URLs`;
                     {preview.source && (
                       <>
                         {" · "}
-                        <a href={preview.source} target="_blank" rel="noreferrer" className="underline">official sample</a>
+                        <a href={preview.source} target="_blank" rel="noreferrer" className="underline">source</a>
                       </>
                     )}
                   </span>
