@@ -1,3 +1,5 @@
+import { creditsLabel } from "./credits";
+
 // Model catalog. Each model maps to one or more candidate RunPod public endpoint IDs;
 // the first one RunPod accepts is used (see lib/runpod.ts). Override any of them with
 // RUNPOD_ENDPOINT_OVERRIDES='{"model-id":"endpoint-id"}'.
@@ -722,16 +724,20 @@ const BASE_MODELS: Model[] = [
 ];
 
 
+/** Extra multiplier on every model price (applied after the margin below). */
+export const PRICE_MULTIPLIER = 1.5;
+
 /**
- * Vlipa's margin on a provider unit price (per image, per second or per run):
- * prices from $0.01 up to $0.099 get a flat +$0.01, everything else +20%.
+ * Vlipa's price for a provider unit price (per image, per second or per run), in USD:
+ * prices from $0.01 up to $0.099 get a flat +$0.01, everything else +20%; then × PRICE_MULTIPLIER.
  */
 export function markup(unit: number) {
-  const v = unit >= 0.01 && unit < 0.1 ? unit + 0.01 : unit * 1.2;
-  return Math.round(v * 10000) / 10000;
+  const v = (unit >= 0.01 && unit < 0.1 ? unit + 0.01 : unit * 1.2) * PRICE_MULTIPLIER;
+  return Math.round(v * 100000) / 100000;
 }
-const money = (n: number) => (n >= 1 ? n.toFixed(2) : String(Number(n.toPrecision(3))));
-const markLabel = (l: string) => l.replace(/\$([\d.]+)/, (_, n: string) => `$${money(markup(Number(n)))}`);
+/** "$0.04 / image" → "60 credits / image"; labels without a price show the per-run price. */
+const markLabel = (l: string, runPrice: number) =>
+  /\$[\d.]+/.test(l) ? l.replace(/\$([\d.]+)/, (_, n: string) => creditsLabel(markup(Number(n)))) : `${creditsLabel(runPrice)} / run`;
 
 /** The catalog with the prices users are charged. */
 export const MODELS: Model[] = BASE_MODELS.map((m) => {
@@ -739,8 +745,8 @@ export const MODELS: Model[] = BASE_MODELS.map((m) => {
   return {
     ...m,
     perSecond,
-    price: perSecond ? Math.round(perSecond * 5 * 10000) / 10000 : markup(m.price),
-    priceLabel: markLabel(m.priceLabel),
+    price: perSecond ? Math.round(perSecond * 5 * 100000) / 100000 : markup(m.price),
+    priceLabel: markLabel(m.priceLabel, perSecond ? perSecond * 5 : markup(m.price)),
   };
 });
 

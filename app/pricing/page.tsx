@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Minus, Sparkles } from "lucide-react";
 import { getModel, MODELS } from "@/lib/catalog";
+import { creditsLabel } from "@/lib/credits";
 import { modelAllowed } from "@/lib/plans";
 import { LLMS } from "@/lib/llm";
 import { PLAN_DAYS, PLANS } from "@/lib/plans";
@@ -24,7 +25,7 @@ const FAQ = [
   { q: "How do I get a plan?", a: "Buy a Vlipa code for the plan you want from our official store, then open Account → Credits and redeem it. Credits are added instantly and the plan turns on right away." },
   {
     q: "What are credits?",
-    a: `Credits are a dollar balance. Every image or video is charged at the price shown on the model, so $1 of credits covers about ${Math.floor(1 / IMG.price)} ${IMG.name} images or ${Math.floor(1 / ((VID.perSecond ?? VID.price) * VID_SECONDS))} ${VID_SECONDS}-second ${VID.name} clips.`,
+    a: `Every image or video costs the number of credits shown on the model. For example ${IMG.name} is ${creditsLabel(IMG.price)} per image and a ${VID_SECONDS}-second ${VID.name} clip is ${creditsLabel((VID.perSecond ?? VID.price) * VID_SECONDS)}.`,
   },
   { q: "Do unused credits expire?", a: `No. Credits stay on your account. The plan itself (and its agent models) is active for ${PLAN_DAYS} days after you redeem the code.` },
   { q: "Which agent models come with each plan?", a: "Every plan includes GLM 5.3 Flash and DeepSeek V4.1 Flash. Ultra adds Opus 5.5 and GPT-6.1 Sol, our strongest planners." },
@@ -81,8 +82,8 @@ export default function Page() {
                     <span className={`flex h-5 w-5 items-center justify-center rounded-full bg-white/10 ${t.accent}`}>
                       <Sparkles size={11} />
                     </span>
-                    <span className={t.accent}>${p.credits} in credits</span>
-                    {p.bonus ? <span className="rounded-full bg-[#4ade80]/15 px-2 py-0.5 text-xs font-semibold text-[#4ade80]">+${p.bonus} bonus</span> : null}
+                    <span className={t.accent}>{creditsLabel(p.credits)}</span>
+                    {p.bonus ? <span className="rounded-full bg-[#4ade80]/15 px-2 py-0.5 text-xs font-semibold text-[#4ade80]">+{creditsLabel(p.bonus)} bonus</span> : null}
                   </div>
                   <div className="ml-2.5 mt-2 space-y-2 border-l border-line-2 pl-5 text-sm">
                     <div>
@@ -176,7 +177,7 @@ export default function Page() {
                           {m.name}
                         </Link>
                         <div className="text-xs text-dim">
-                          ~${cost.toFixed(3)} per {m.kind === "video" ? `${VID_SECONDS}s video` : "image"}
+                          {creditsLabel(cost)} per {m.kind === "video" ? `${VID_SECONDS}s video` : "image"}
                         </div>
                       </td>
                       {PLANS.map((p) => (

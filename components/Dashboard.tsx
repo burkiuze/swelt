@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, Check, CircleDollarSign, FileText, ImageIcon, LayoutGrid, ReceiptText } from "lucide-react";
 import { getModel } from "@/lib/catalog";
+import { creditsLabel } from "@/lib/credits";
 import { Media } from "./Media";
 import { ModelRow } from "./ModelCard";
 
@@ -42,7 +43,7 @@ export function Dashboard() {
 
   const daily = s?.daily?.length ? s.daily : Array.from({ length: 7 }, () => ({ day: "", requests: 0, errors: 0 }));
   const recent = (s?.recent_models || []).map(getModel).filter((m): m is NonNullable<typeof m> => Boolean(m));
-  const money = (n: number | null | undefined) => `$${Number(n ?? 0).toFixed(2)}`;
+  const money = (n: number | null | undefined) => creditsLabel(n);
 
   return (
     <div className="space-y-14">

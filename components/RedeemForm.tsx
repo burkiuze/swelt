@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Ticket } from "lucide-react";
+import { creditsLabel } from "@/lib/credits";
 
 export function RedeemForm() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export function RedeemForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not redeem the code");
       const plan = data.plan ? `${String(data.plan)[0].toUpperCase()}${String(data.plan).slice(1)} plan activated. ` : "";
-      setMsg({ ok: true, text: `${plan}$${Number(data.added).toFixed(2)} added. New balance: $${Number(data.credits).toFixed(2)}` });
+      setMsg({ ok: true, text: `${plan}${creditsLabel(Number(data.added))} added. New balance: ${creditsLabel(Number(data.credits))}` });
       setCode("");
       router.refresh();
       window.dispatchEvent(new Event("swelt:credits"));

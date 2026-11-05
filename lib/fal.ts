@@ -1,5 +1,6 @@
 import "server-only";
 import { getModel, markup, type Category, type Field, type Model } from "./catalog";
+import { creditsLabel } from "./credits";
 import type { RunpodJob, RunpodStatus } from "./runpod";
 
 // fal.ai — every active image/video model, loaded live from fal's platform API.
@@ -84,7 +85,6 @@ function unitsPerRun(unit: string, kind: "image" | "video") {
   return kind === "video" ? 5 : 1;
 }
 
-const money = (n: number) => (n >= 1 ? n.toFixed(2) : String(Number(n.toPrecision(3))));
 const pretty = (s: string) => s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 function baseFields(category: Category): Field[] {
@@ -155,7 +155,7 @@ function toModel(m: FalListItem, price: FalPrice | undefined, fields?: Field[]):
     endpoints: [],
     fields: fields ?? baseFields(category),
     price: runPrice,
-    priceLabel: unitPrice != null ? `$${money(unitPrice)} / ${unit}` : "via fal",
+    priceLabel: unitPrice != null ? `${creditsLabel(unitPrice)} / ${unit}` : "price pending",
     gradient: GRADIENTS[hash % GRADIENTS.length],
   };
 }

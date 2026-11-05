@@ -6,6 +6,7 @@ import { signOutAction } from "@/app/actions";
 import { ThemeSwitch } from "@/components/AccountMenu";
 import { RedeemForm } from "@/components/RedeemForm";
 import { getCaller } from "@/lib/auth";
+import { creditsLabel } from "@/lib/credits";
 
 export const metadata = { title: "Account — Vlipa" };
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export default async function AccountPage() {
   const session = await auth();
   const user = session?.user;
   const provider = caller.userId.split(":")[0];
-  const credits = caller.isAdmin ? "Unlimited" : `$${Number(caller.profile?.credits ?? 0).toFixed(2)}`;
+  const credits = caller.isAdmin ? "Unlimited" : creditsLabel(Number(caller.profile?.credits ?? 0));
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 px-4 py-8 sm:px-6">

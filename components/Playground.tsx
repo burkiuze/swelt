@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Loader2, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
 import type { Model } from "@/lib/catalog";
+import { creditsLabel } from "@/lib/credits";
 import { FINAL, startRun, waitFor, type JobView } from "@/lib/client";
 import { FieldInput, initialValues } from "./Fields";
 import { Media, MediaActions } from "./Media";
@@ -130,7 +131,7 @@ export function Playground({ model, preview }: { model: Model; preview?: { url: 
                 <span className="text-xs text-dim">
                   {job.status}
                   {running && ` · ${elapsed.toFixed(1)}s`}
-                  {job.status === "COMPLETED" && job.cost > 0 && ` · $${job.cost.toFixed(4)}`}
+                  {job.status === "COMPLETED" && job.cost > 0 && ` · ${creditsLabel(job.cost)}`}
                 </span>
               )}
             </div>

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket } from "lucide-react";
 import { signOutAction } from "@/app/actions";
 import { planName, type PlanKey } from "@/lib/plans";
+import { fmtCredits } from "@/lib/credits";
 
 export type Me = {
   signedIn: boolean;
@@ -33,7 +34,7 @@ function useOutside<T extends HTMLElement>(open: boolean, close: () => void) {
   return ref;
 }
 
-const money = (me: Me) => (me.unlimited ? "Unlimited" : `$${(me.credits ?? 0).toFixed(2)}`);
+const money = (me: Me) => (me.unlimited ? "Unlimited" : fmtCredits(me.credits));
 const low = (me: Me) => !me.unlimited && (me.credits ?? 0) <= 0;
 
 /** 3×3 dot grid, like a little credit "chip". */

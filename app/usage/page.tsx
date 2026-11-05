@@ -1,3 +1,4 @@
+import { creditsLabel } from "@/lib/credits";
 import { redirect } from "next/navigation";
 import { getCaller } from "@/lib/auth";
 import { dbEnabled, listGenerations, stats } from "@/lib/db";
@@ -16,18 +17,18 @@ export default async function Page() {
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card p-5">
           <div className="text-sm text-muted">Balance</div>
-          <div className="mt-1 text-2xl font-semibold">{caller.isAdmin ? "Unlimited" : `$${Number(caller.profile?.credits ?? 0).toFixed(2)}`}</div>
+          <div className="mt-1 text-2xl font-semibold">{caller.isAdmin ? "Unlimited" : creditsLabel(Number(caller.profile?.credits ?? 0))}</div>
         </div>
         <div className="card p-5">
           <div className="text-sm text-muted">Spend (7 days)</div>
-          <div className="mt-1 text-2xl font-semibold">${Number(s?.cost_7d ?? 0).toFixed(2)}</div>
+          <div className="mt-1 text-2xl font-semibold">{creditsLabel(Number(s?.cost_7d ?? 0))}</div>
         </div>
         <div className="card p-5">
           <div className="text-sm text-muted">Requests / errors (7 days)</div>
           <div className="mt-1 text-2xl font-semibold">{s?.requests_7d ?? 0} / {s?.errors_7d ?? 0}</div>
         </div>
       </div>
-      <p className="text-sm text-muted">New accounts start with ${Number(process.env.FREE_CREDITS ?? 1).toFixed(2)} of free credits. Each run is charged the cost reported by the provider (or the listed estimate).</p>
+      <p className="text-sm text-muted">New accounts start with {creditsLabel(Number(process.env.FREE_CREDITS ?? 1))} free. Each run is charged the price shown on the model.</p>
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left text-muted">
@@ -40,7 +41,7 @@ export default async function Page() {
                 <td className="p-3">{r.model_id}</td>
                 <td className="p-3 text-muted">{r.source}</td>
                 <td className={`p-3 ${r.status === "FAILED" ? "text-[#ff9592]" : r.status === "COMPLETED" ? "text-[#4ade80]" : "text-muted"}`} title={r.error ?? ""}>{r.status}</td>
-                <td className="p-3 text-right">${Number(r.cost).toFixed(4)}</td>
+                <td className="p-3 text-right">{creditsLabel(Number(r.cost))}</td>
               </tr>
             ))}
             {!rows.length && (

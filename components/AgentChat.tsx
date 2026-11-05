@@ -26,6 +26,7 @@ import {
   Zap,
 } from "lucide-react";
 import { getModel } from "@/lib/catalog";
+import { creditsLabel } from "@/lib/credits";
 import { FINAL, pollRun, startRun, upload, type JobView } from "@/lib/client";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { Media } from "./Media";
@@ -637,7 +638,7 @@ export function AgentChat() {
                 <Images size={14} /> {outputCount}
               </span>
               <span className="px-1.5 font-semibold" title="Cost of this chat">
-                ${totalCost.toFixed(2)}
+                {creditsLabel(totalCost)}
               </span>
             </div>
           </div>

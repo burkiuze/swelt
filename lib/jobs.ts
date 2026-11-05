@@ -10,6 +10,7 @@ import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit 
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
 import { getPlan } from "./planServer";
 import { modelAllowed, planName } from "./plans";
+import { creditsLabel } from "./credits";
 import { blockedReason, inputText } from "./safety";
 import { persistMedia } from "./storage";
 
@@ -50,7 +51,7 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   }
 
   if (!caller.isAdmin && caller.profile && Number(caller.profile.credits) < model.price) {
-    throw new HttpError(402, `Not enough credits: this run costs about $${model.price.toFixed(3)} and your balance is $${Number(caller.profile.credits).toFixed(3)}.`);
+    throw new HttpError(402, `Not enough credits: this run costs about ${creditsLabel(model.price)} and your balance is ${creditsLabel(Number(caller.profile.credits))}.`);
   }
 
   let gen: Generation;

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PLANS } from "@/lib/plans";
+import { creditsLabel } from "@/lib/credits";
 import { Check, Copy, Download, Trash2 } from "lucide-react";
 
 type Code = {
@@ -131,7 +132,7 @@ export function CodesAdmin() {
           <input type="number" min={1} max={200} value={count} onChange={(e) => setCount(Number(e.target.value))} className="input mt-1 h-8" />
         </label>
         <label className="text-xs text-dim">
-          Credits ($)
+          Credits ($ · 1$ = 1,000 cr)
           <input type="number" min={0.01} step={0.01} value={credits} onChange={(e) => setCredits(Number(e.target.value))} className="input mt-1 h-8" />
         </label>
         <label className="text-xs text-dim">
@@ -183,7 +184,7 @@ export function CodesAdmin() {
               {shown.map((c) => (
                 <tr key={c.code} className="border-t border-line">
                   <td className="whitespace-nowrap px-3 py-2 font-mono text-xs">{c.code}</td>
-                  <td className="px-3 py-2">${Number(c.credits).toFixed(2)}</td>
+                  <td className="px-3 py-2">{creditsLabel(Number(c.credits))}</td>
                   <td className="max-w-[180px] truncate px-3 py-2 text-muted">{c.note}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-xs">
                     {c.redeemed_by ? (

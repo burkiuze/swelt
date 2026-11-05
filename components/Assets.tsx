@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ImageIcon, Loader2, X } from "lucide-react";
 import { getModel } from "@/lib/catalog";
+import { creditsLabel } from "@/lib/credits";
 import type { JobView } from "@/lib/client";
 import { Media, MediaActions } from "./Media";
 
@@ -78,7 +79,7 @@ export function Assets() {
                 <Link href={`/models/${open.model_id}`} className="font-semibold hover:underline">{open.model_id}</Link>
                 <button onClick={() => setOpen(null)}><X size={18} /></button>
               </div>
-              <div className="text-muted">{open.status} · ${open.cost.toFixed(4)} · {open.created_at && new Date(open.created_at).toLocaleString()}</div>
+              <div className="text-muted">{open.status} · {creditsLabel(open.cost)} · {open.created_at && new Date(open.created_at).toLocaleString()}</div>
               {open.media[0] && <MediaActions url={open.media[0]} />}
               <pre className="max-h-80 overflow-auto rounded-lg bg-[#0c0c0e] p-3 text-xs text-zinc-400">{JSON.stringify(open.output ?? {}, null, 2)}</pre>
               <Link href={`/models/${open.model_id}`} className="btn w-full justify-center">Open in playground</Link>
