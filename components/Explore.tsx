@@ -68,8 +68,8 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
   const labs = (
     <section>
-      <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">Model Labs</h2>
-      <p className="mt-1 text-sm text-muted">Explore the AI labs powering models on Vlipa</p>
+      <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">Browse by lab</h2>
+      <p className="mt-1 text-sm text-muted">The teams behind the models you can run here.</p>
       <div className="scrollbar-none mt-6 flex gap-3 overflow-x-auto">
         {LABS.map((l) => (
           <button
@@ -117,10 +117,10 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
       {browsing ? (
         <>
-          <Section title="Recently Added" subtitle="Newly added models across image and video." previews={previews} models={MODELS.filter((m) => m.isNew)} />
-          <Section title="Video" subtitle="Text-to-video, image-to-video and video editing." previews={previews} models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
-          <Section title="Image editing" subtitle="Edit images with reference photos and instructions." previews={previews} models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
-          <Section title="Text to image" subtitle="Fast drafts to premium renders." previews={previews} models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
+          <Section title="Just landed" subtitle="The newest image and video models on Vlipa." previews={previews} models={MODELS.filter((m) => m.isNew)} />
+          <Section title="Video" subtitle="Make clips from text or images, or edit footage." previews={previews} models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
+          <Section title="Image editing" subtitle="Change an image with a reference and a sentence." previews={previews} models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
+          <Section title="Text to image" subtitle="From quick sketches to polished renders." previews={previews} models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
           {labs}
         </>
       ) : filtered.length ? (

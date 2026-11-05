@@ -1,6 +1,6 @@
 # Vlipa
 
-A generative media platform in the spirit of fal.ai: browse image and video models, run them in a playground, call them from code with API keys, or let an AI agent pick models and write prompts for you.
+A generative media platform: browse image and video models, run them in a playground, call them from code with API keys, or let an AI agent pick models and write prompts for you.
 
 - **Models**: RunPod public endpoints (FLUX, Qwen Image, Seedream, Nano Banana, Z-Image, Pruna, Seedance, Veo, Hailuo, Vidu, Kling, Wan …) — see `lib/catalog.ts`
 - **Agent LLMs**: Claude Opus 5.5 and GPT-6.1 Sol through OpenRouter (`lib/agent.ts`)

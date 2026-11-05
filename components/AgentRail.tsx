@@ -12,7 +12,7 @@ const ITEMS = [
   { href: "/docs", icon: MessageSquare, label: "Docs" },
 ];
 
-/** fal-style icon rail on the left of the agent. */
+/** Icon rail on the left of the agent. */
 export function AgentRail({ onTogglePanel }: { onTogglePanel?: () => void }) {
   const cls = "group relative flex h-9 w-9 items-center justify-center rounded-md text-muted transition hover:bg-panel-2 hover:text-white";
   const tip = "pointer-events-none absolute left-11 z-50 whitespace-nowrap rounded-md bg-[#2a2a2a] px-2 py-1 text-xs text-white opacity-0 shadow transition group-hover:opacity-100";

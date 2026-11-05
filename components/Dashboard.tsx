@@ -18,7 +18,7 @@ type Stats = {
 };
 type Item = { request_id: string; model_id: string; status: string; media: string[]; kind: string };
 
-/** fal-style dashed sparkline: a row of small segments, taller when there is activity. */
+/** Dashed sparkline: a row of small segments, taller when there is activity. */
 function Dashes({ values, color }: { values: number[]; color: string }) {
   const max = Math.max(1, ...values);
   const segs = values.flatMap((v) => [v, v, v]);
@@ -50,80 +50,80 @@ export function Dashboard() {
         <div className="flex flex-col justify-between gap-6 p-5">
           <div className="flex gap-10">
             <div>
-              <div className="text-sm text-muted">Credits balance</div>
+              <div className="text-sm text-muted">Balance</div>
               <div className="mt-1 text-2xl font-semibold">{s ? (s.unlimited ? "∞" : money(s.credits)) : "—"}</div>
             </div>
             <div>
-              <div className="text-sm text-muted">Cost estimate in the last 7 days</div>
+              <div className="text-sm text-muted">Spent this week</div>
               <div className="mt-1 text-2xl font-semibold">{s ? money(s.cost_7d) : "—"}</div>
             </div>
           </div>
           <div className="flex gap-2">
-            <Link href="/usage" className="btn"><CircleDollarSign size={15} /> Go to credits</Link>
-            <Link href="/usage" className="btn"><ReceiptText size={15} /> Go to usage</Link>
+            <Link href="/usage" className="btn"><CircleDollarSign size={15} /> Credits</Link>
+            <Link href="/usage" className="btn"><ReceiptText size={15} /> Usage</Link>
           </div>
         </div>
         <div className="flex gap-6 p-5">
           <div className="flex flex-col justify-between">
             <div>
-              <div className="text-sm text-muted">Requests in the last 7 days</div>
+              <div className="text-sm text-muted">Runs this week</div>
               <div className="mt-1 text-2xl font-semibold">{s?.requests_7d ?? "—"}</div>
             </div>
-            <Link href="/usage" className="btn mt-6 self-start">Check usage</Link>
+            <Link href="/usage" className="btn mt-6 self-start">View history</Link>
           </div>
           <Dashes values={daily.map((d) => d.requests)} color="#6d4aff" />
         </div>
         <div className="flex gap-6 p-5">
           <div className="flex flex-col justify-between">
             <div>
-              <div className="text-sm text-muted">Errors in the last 7 days</div>
+              <div className="text-sm text-muted">Failed runs this week</div>
               <div className="mt-1 text-2xl font-semibold">{s?.errors_7d ?? "—"}</div>
             </div>
-            <Link href="/assets" className="btn mt-6 self-start">See requests</Link>
+            <Link href="/assets" className="btn mt-6 self-start">Open assets</Link>
           </div>
           <Dashes values={daily.map((d) => d.errors)} color="#e5484d" />
         </div>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold tracking-tight">Getting started</h2>
-        <p className="mt-1 text-muted">Start exploring Vlipa&apos;s capabilities</p>
+        <h2 className="text-2xl font-semibold tracking-tight">Your first steps</h2>
+        <p className="mt-1 text-muted">Three quick things and you&apos;re creating.</p>
         <div className="card mt-6 grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
           <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-base font-semibold">Welcome to Vlipa!</h3>
-              <p className="mt-1 text-sm text-muted">Let&apos;s get your account ready to generate content or call the API.</p>
+              <h3 className="text-base font-semibold">Set up your account</h3>
+              <p className="mt-1 text-sm text-muted">Sign in, grab your starter credits and make something.</p>
             </div>
             <Step done label="Create an account" />
-            <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Get starter credits" href="/usage" cta="View credits" />
-            <Step done={!!s && s.requests_7d > 0} label="Generate your first media" href="/explore" cta="Try a model" />
+            <Step done={!!s && (s.unlimited || (s.credits ?? 0) > 0)} label="Claim starter credits" href="/usage" cta="View credits" />
+            <Step done={!!s && s.requests_7d > 0} label="Make your first image or video" href="/explore" cta="Try a model" />
           </div>
           <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-base font-semibold">Start creating with Vlipa</h3>
-              <p className="mt-1 text-sm text-muted">Generate in the browser or call any model from code.</p>
+              <h3 className="text-base font-semibold">Ways to create</h3>
+              <p className="mt-1 text-sm text-muted">Chat with the agent, open a model, or use the API.</p>
             </div>
-            <QuickLink href="/agent" icon={LayoutGrid} label="Generate with the Agent" />
-            <QuickLink href="/keys" icon={KeyRound} label="Get an API Key" />
-            <QuickLink href="/docs" icon={FileText} label="Quickstart: Call your first model" />
-            <QuickLink href="/docs" icon={BookOpen} label="Go to documentation" />
+            <QuickLink href="/agent" icon={LayoutGrid} label="Open the Agent" />
+            <QuickLink href="/keys" icon={KeyRound} label="Create an API key" />
+            <QuickLink href="/docs" icon={FileText} label="Your first API call in 2 minutes" />
+            <QuickLink href="/docs" icon={BookOpen} label="Read the docs" />
           </div>
           <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-base font-semibold">{recent.length ? "Recently used models" : "Explore the latest models"}</h3>
-              <p className="mt-1 text-sm text-muted">Top tools for image and video generation.</p>
+              <h3 className="text-base font-semibold">{recent.length ? "Your recent models" : "Popular right now"}</h3>
+              <p className="mt-1 text-sm text-muted">Good places to start for images and video.</p>
             </div>
             {(recent.length ? recent : [getModel("google/nano-banana-2"), getModel("vidu/vidu-q3-i2v"), getModel("pruna/p-video")].filter((m): m is NonNullable<typeof m> => Boolean(m)))
               .slice(0, 3)
               .map((m) => <ModelRow key={m.id} model={m} />)}
-            <QuickLink href="/explore" icon={LayoutGrid} label="Explore all models" />
+            <QuickLink href="/explore" icon={LayoutGrid} label="Browse every model" />
           </div>
         </div>
       </section>
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">Latest generations</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Your recent work</h2>
           <Link href="/assets" className="btn">See all <ArrowRight size={15} /></Link>
         </div>
         {items === null ? (
@@ -133,10 +133,10 @@ export function Dashboard() {
         ) : items.length === 0 ? (
           <div className="card mt-5 flex flex-col items-center gap-3 py-20 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-md bg-panel-2 text-muted"><ImageIcon size={22} /></span>
-            <div className="text-lg font-semibold">Nothing here… yet.</div>
-            <p className="max-w-md text-muted">Start your first generation and see your creations come to life. Try the Agent or pick a model to begin.</p>
+            <div className="text-lg font-semibold">Your gallery is empty</div>
+            <p className="max-w-md text-muted">Everything you generate shows up here. Ask the agent for an idea or open any model to make your first piece.</p>
             <div className="mt-2 flex gap-2">
-              <Link href="/agent" className="btn btn-primary">Try the Agent</Link>
+              <Link href="/agent" className="btn btn-primary">Open the Agent</Link>
               <Link href="/explore" className="btn">Explore models</Link>
             </div>
           </div>

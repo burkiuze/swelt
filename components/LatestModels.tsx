@@ -11,7 +11,7 @@ export async function LatestModels() {
     <section>
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2 rounded-md bg-panel-2 px-3 py-1.5 text-sm font-semibold">
-          <Sparkles size={14} /> Latest models
+          <Sparkles size={14} /> New on Vlipa
         </span>
         <Link href="/explore" className="btn">
           See all <ArrowRight size={15} />

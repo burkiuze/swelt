@@ -26,15 +26,42 @@ body {
   background: #ffffff33;
 }
 
-/* Soft pastel hero, like a blurred photo backdrop */
+/* Night-sky hero: soft cloud glows and a sprinkle of stars (pure CSS) */
 .hero-bg {
+  position: relative;
+  isolation: isolate;
   background:
-    radial-gradient(28% 55% at 6% 25%, #9aa7f2 0%, transparent 70%),
-    radial-gradient(30% 45% at 32% 8%, #a77ee0 0%, transparent 70%),
-    radial-gradient(30% 60% at 98% 90%, #a57de4 0%, transparent 70%),
-    radial-gradient(35% 60% at 72% 70%, #f2b3df 0%, transparent 70%),
-    #f1d3ee;
+    radial-gradient(60% 45% at 15% 30%, #ffffff10 0%, transparent 70%),
+    radial-gradient(50% 40% at 85% 25%, #ffffff0d 0%, transparent 70%),
+    radial-gradient(70% 50% at 50% 100%, #ffffff0a 0%, transparent 70%),
+    radial-gradient(120% 80% at 50% 0%, #1d1f26 0%, #121316 55%, var(--color-bg) 100%);
 }
+.hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 62%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 41% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 58% 38%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 69% 8%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 83% 52%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 22%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 78%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 36% 86%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 80%, #fff 50%, transparent 51%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+}
+html.light .hero-bg {
+  background:
+    radial-gradient(60% 45% at 15% 30%, #ffffffaa 0%, transparent 70%),
+    radial-gradient(120% 80% at 50% 0%, #e9ebf0 0%, #f2f3f6 55%, var(--color-bg) 100%);
+}
+html.light .hero-bg::before { opacity: 0; }
+
 .grain {
   position: relative;
 }

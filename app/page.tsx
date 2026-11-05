@@ -10,27 +10,29 @@ export default async function Home() {
   const signedIn = Boolean((await auth())?.user);
   return (
     <div>
-      <section className="hero-bg grain px-4 pb-24 pt-14 text-center sm:pt-20">
-        <h1 className="relative text-4xl font-bold tracking-[-0.045em] text-[#1a1a1a] sm:text-[54px]">Bring your ideas to life.</h1>
-        <p className="relative mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-[#4a4a4a]">
-          Describe in detail what you want to create and the Vlipa Agent will bring the right models for the next steps.
+      <section className="hero-bg px-4 pb-16 pt-20 text-center sm:pt-28">
+        <h1 className="mx-auto max-w-3xl text-[34px] font-semibold leading-tight tracking-[-0.04em] sm:text-[52px]">
+          Describe it once. Vlipa handles the rest.
+        </h1>
+        <p className="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed text-muted">
+          Images, videos and full creative workflows from a single prompt — the agent chooses the models for every step.
         </p>
-      </section>
-      <div className="relative z-10 -mt-[60px] px-4 sm:px-6">
-        <PromptBox />
-        <div className="mt-6">
+        <div className="mt-10">
+          <PromptBox />
+        </div>
+        <div className="mt-10">
           <ModelsFrom />
         </div>
-      </div>
+      </section>
 
-      <div className="mx-auto mt-12 max-w-[1400px] space-y-12 px-4 sm:px-6">
+      <div className="mx-auto mt-4 max-w-[1400px] space-y-12 px-4 sm:px-6">
         {signedIn ? (
           <Dashboard />
         ) : (
           <div className="card flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center">
             <div className="flex-1">
-              <div className="font-semibold">Sign in to start generating</div>
-              <div className="text-sm text-muted">Continue with Google. New accounts get free starter credits.</div>
+              <div className="font-semibold">Create your free account</div>
+              <div className="text-sm text-muted">Sign in with Google and get starter credits to try any model.</div>
             </div>
             <Link href="/login" className="btn btn-primary">Get started</Link>
           </div>

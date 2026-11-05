@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 
 export function Footer() {
-  // The agent is a full-height app view, like fal's.
+  // The agent is a full-height app view.
   const path = usePathname();
   if (path.startsWith("/agent") || path.startsWith("/login")) return null;
   return (

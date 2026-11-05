@@ -10,7 +10,7 @@ const EFFORT_HINT: Record<Effort, string> = {
   high: "Most careful planning",
 };
 
-/** fal-style popover for choosing the agent LLM and reasoning effort. */
+/** Popover for choosing the agent LLM and reasoning effort. */
 export function ModelPicker({
   llm,
   effort,
