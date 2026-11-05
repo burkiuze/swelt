@@ -1,7 +1,7 @@
 import { Explore } from "@/components/Explore";
 import { getPreviews } from "@/lib/showcase";
 
-export const metadata = { title: "Explore models — Swelt" };
+export const metadata = { title: "Explore models — Vlipa" };
 export const revalidate = 60;
 
 export default async function Page() {

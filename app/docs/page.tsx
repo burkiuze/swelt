@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MODELS } from "@/lib/catalog";
 
-export const metadata = { title: "API docs — Swelt" };
+export const metadata = { title: "API docs — Vlipa" };
 
 const pre = "overflow-x-auto rounded-lg border border-line bg-[#0c0c0e] p-4 text-[13px] leading-relaxed text-zinc-300";
 
@@ -10,7 +10,7 @@ export default function Page() {
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-10 sm:px-7">
       <div>
         <h1 className="text-3xl font-semibold">Quickstart: call your first model</h1>
-        <p className="mt-2 text-muted">Every model in Swelt is available over one small async HTTP API.</p>
+        <p className="mt-2 text-muted">Every model in Vlipa is available over one small async HTTP API.</p>
       </div>
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Get an API key</h2>
@@ -40,7 +40,7 @@ Authorization: Key $SWELT_KEY
           <li><code>GET /api/generations?kind=image|video&amp;limit=50</code> — your history</li>
           <li><code>GET /api/stats</code> — requests, errors, spend and credit balance</li>
           <li><code>POST /api/upload</code> (multipart <code>file</code>) — upload a reference image, returns <code>{"{ url }"}</code></li>
-          <li><code>POST /api/agent</code> — <code>{"{ messages, llm: \"opus\"|\"sol\", effort, approval }"}</code> — the Swelt Agent</li>
+          <li><code>POST /api/agent</code> — <code>{"{ messages, llm: \"opus\"|\"sol\", effort, approval }"}</code> — the Vlipa Agent</li>
         </ul>
       </section>
       <section className="space-y-3">

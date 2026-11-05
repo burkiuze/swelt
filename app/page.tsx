@@ -13,7 +13,7 @@ export default function Home() {
       <section className="hero-bg grain px-4 pb-24 pt-14 text-center sm:pt-20">
         <h1 className="relative text-4xl font-bold tracking-[-0.045em] text-[#1a1a1a] sm:text-[54px]">Bring your ideas to life.</h1>
         <p className="relative mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-[#4a4a4a]">
-          Describe in detail what you want to create and the Swelt Agent will bring the right models for the next steps.
+          Describe in detail what you want to create and the Vlipa Agent will bring the right models for the next steps.
         </p>
       </section>
       <div className="relative z-10 -mt-[60px] px-4 sm:px-6">

@@ -1,7 +1,7 @@
 // Real outputs of each model found online under licenses that allow reuse: the model
 // authors' official repositories (Apache-2.0) and the CC BY 4.0 Awesome-Nano-Banana-images
 // gallery. Cropped and resized into /public/previews and credited in CREDITS.md.
-// These take priority over previews generated in Swelt.
+// These take priority over previews generated in Vlipa.
 export type OfficialPreview = { url: string; kind: "image" | "video"; source: string; license: string };
 
 export const OFFICIAL_PREVIEWS: Record<string, OfficialPreview> = {

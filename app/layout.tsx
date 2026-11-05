@@ -7,7 +7,7 @@ import { Nav } from "@/components/Nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Swelt — generative media platform",
+  title: "Vlipa — generative media platform",
   description:
     "Run the best image and video models in the browser or from code. Powered by RunPod, with an AI agent on Claude Opus 5.5 and GPT-6.1 Sol.",
 };

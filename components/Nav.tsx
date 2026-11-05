@@ -55,7 +55,7 @@ export function Nav() {
       <div className="mx-auto flex h-12 max-w-[1400px] items-center gap-3 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-1.5 text-lg font-bold tracking-tight">
           <Logo size={22} />
-          swelt
+          vlipa
         </Link>
         {current && <span className="hidden text-sm text-muted sm:inline">/&nbsp;&nbsp;{current}</span>}
         <span className="flex-1" />

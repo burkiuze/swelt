@@ -1,6 +1,6 @@
 import { Keys } from "@/components/Keys";
 
-export const metadata = { title: "API Keys — Swelt" };
+export const metadata = { title: "API Keys — Vlipa" };
 
 export default function Page() {
   return (

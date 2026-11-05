@@ -96,7 +96,7 @@ export function Playground({ model, preview }: { model: Model; preview?: { url: 
     return o;
   }, [model.fields, values]);
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://swelt.app";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://vlipa.dev";
   const curl = `curl -X POST ${origin}/api/run \\
   -H "Authorization: Key $SWELT_KEY" \\
   -H "Content-Type: application/json" \\

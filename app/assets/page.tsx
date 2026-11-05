@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Assets } from "@/components/Assets";
 
-export const metadata = { title: "Assets — Swelt" };
+export const metadata = { title: "Assets — Vlipa" };
 
 export default function Page() {
   return (

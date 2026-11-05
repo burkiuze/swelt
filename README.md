@@ -1,4 +1,4 @@
-# Swelt
+# Vlipa
 
 A generative media platform in the spirit of fal.ai: browse image and video models, run them in a playground, call them from code with API keys, or let an AI agent pick models and write prompts for you.
 
@@ -15,7 +15,7 @@ A generative media platform in the spirit of fal.ai: browse image and video mode
 | `/` | Hero agent prompt, dashboard (credits, 7-day requests/errors), getting started, latest models |
 | `/explore` | Search + filter models by type and lab |
 | `/models/<lab>/<model>` | Playground (schema-driven form, result, history) and API tab with cURL / JS |
-| `/agent` | Chat with the Swelt Agent (Opus 5.5 / GPT-6.1 Sol, effort, approval mode) |
+| `/agent` | Chat with the Vlipa Agent (Opus 5.5 / GPT-6.1 Sol, effort, approval mode) |
 | `/assets` | Everything you generated |
 | `/keys` | Create / revoke API keys |
 | `/usage` | Credit balance and per-request costs |

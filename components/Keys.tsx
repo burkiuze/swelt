@@ -35,7 +35,7 @@ export function Keys() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">API Keys</h1>
-        <p className="mt-1 text-muted">Use keys to call any Swelt model from your code: <code className="text-zinc-300">Authorization: Key swk_…</code></p>
+        <p className="mt-1 text-muted">Use keys to call any Vlipa model from your code: <code className="text-zinc-300">Authorization: Key swk_…</code></p>
       </div>
       <div className="card flex flex-wrap gap-2 p-4">
         <input className="input max-w-sm flex-1" placeholder="Key name, e.g. production" value={name} onChange={(e) => setName(e.target.value)} />

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCaller } from "@/lib/auth";
 import { dbEnabled, listGenerations, stats } from "@/lib/db";
 
-export const metadata = { title: "Usage — Swelt" };
+export const metadata = { title: "Usage — Vlipa" };
 export const dynamic = "force-dynamic";
 
 export default async function Page() {

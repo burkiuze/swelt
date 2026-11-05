@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// Providers that actually serve Swelt's models.
+// Providers that actually serve Vlipa's models.
 const PROVIDERS: { name: string; logo: string | null; what: string }[] = [
   { name: "RunPod", logo: "/brand/runpod-white.png", what: "image & video models" },
   { name: "OpenRouter", logo: "/brand/openrouter-white.png", what: "agent LLMs" },

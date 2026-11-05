@@ -87,11 +87,11 @@ export function Dashboard() {
 
       <section>
         <h2 className="text-2xl font-semibold tracking-tight">Getting started</h2>
-        <p className="mt-1 text-muted">Start exploring Swelt&apos;s capabilities</p>
+        <p className="mt-1 text-muted">Start exploring Vlipa&apos;s capabilities</p>
         <div className="card mt-6 grid divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
           <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-base font-semibold">Welcome to Swelt!</h3>
+              <h3 className="text-base font-semibold">Welcome to Vlipa!</h3>
               <p className="mt-1 text-sm text-muted">Let&apos;s get your account ready to generate content or call the API.</p>
             </div>
             <Step done label="Create an account" />
@@ -100,7 +100,7 @@ export function Dashboard() {
           </div>
           <div className="space-y-5 p-5">
             <div>
-              <h3 className="text-base font-semibold">Start creating with Swelt</h3>
+              <h3 className="text-base font-semibold">Start creating with Vlipa</h3>
               <p className="mt-1 text-sm text-muted">Generate in the browser or call any model from code.</p>
             </div>
             <QuickLink href="/agent" icon={LayoutGrid} label="Generate with the Agent" />

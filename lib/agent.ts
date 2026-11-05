@@ -26,7 +26,7 @@ const TOOLS = [
     function: {
       name: "generate_media",
       description:
-        "Run one Swelt image/video model on RunPod. Returns the request status and media URLs. Use output URLs from earlier calls as `image`/`images` inputs to chain steps (e.g. generate an image, then animate it).",
+        "Run one Vlipa image/video model on RunPod. Returns the request status and media URLs. Use output URLs from earlier calls as `image`/`images` inputs to chain steps (e.g. generate an image, then animate it).",
       parameters: {
         type: "object",
         properties: {
@@ -41,7 +41,7 @@ const TOOLS = [
 ];
 
 function systemPrompt(approval: boolean) {
-  return `You are the Swelt Agent, a creative director inside Swelt — a generative media platform (image + video models served from RunPod).
+  return `You are the Vlipa Agent, a creative director inside Vlipa — a generative media platform (image + video models served from RunPod).
 The user describes what they want; you pick the right model(s), write strong, detailed prompts, and call generate_media.
 Guidelines:
 - Prefer one well-chosen model per step. For several variations, make several calls (max 4 per turn).
@@ -64,8 +64,8 @@ async function chat(model: string, messages: Msg[], effort: Effort) {
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://swelt.vercel.app",
-      "X-Title": "Swelt",
+      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://vlipa.dev",
+      "X-Title": "Vlipa",
     },
     body: JSON.stringify({ model, messages, tools: TOOLS, tool_choice: "auto", reasoning: { effort }, max_tokens: 4000 }),
     signal: AbortSignal.timeout(120_000),
@@ -145,7 +145,7 @@ export async function runAgent(
     const key = process.env.OPENROUTER_API_KEY!;
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Swelt" },
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Vlipa" },
       body: JSON.stringify({ model, messages, max_tokens: 800, tools: TOOLS, tool_choice: "none" }),
       signal: AbortSignal.timeout(60_000),
     });

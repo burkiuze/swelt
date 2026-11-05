@@ -56,7 +56,7 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
   const labs = (
     <section>
       <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">Model Labs</h2>
-      <p className="mt-1 text-sm text-muted">Explore the AI labs powering models on Swelt</p>
+      <p className="mt-1 text-sm text-muted">Explore the AI labs powering models on Vlipa</p>
       <div className="scrollbar-none mt-6 flex gap-3 overflow-x-auto">
         {LABS.map((l) => (
           <button

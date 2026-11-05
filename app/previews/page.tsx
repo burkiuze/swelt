@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { PreviewsAdmin } from "@/components/PreviewsAdmin";
 import { getCaller } from "@/lib/auth";
 
-export const metadata = { title: "Model previews — Swelt" };
+export const metadata = { title: "Model previews — Vlipa" };
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
