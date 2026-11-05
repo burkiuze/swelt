@@ -32,10 +32,11 @@ function Section({ title, subtitle, models, previews }: { title: string; subtitl
   if (!models.length) return null;
   return (
     <section>
-      <h2 className="flex items-center gap-1.5 text-2xl font-semibold tracking-tight sm:text-[28px]">
-        {title} <ChevronRight size={22} className="text-muted" />
+      <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight sm:text-[28px]">
+        <span className="h-6 w-1 rounded-full bg-gradient-to-b from-accent to-accent-2" />
+        {title} <ChevronRight size={20} className="text-dim" />
       </h2>
-      {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+      {subtitle && <p className="mt-1 pl-3 text-sm text-muted">{subtitle}</p>}
       <div className="mt-5 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {models.map((m) => (
           <ModelCard key={m.id} model={m} preview={previews[m.id]} />
@@ -68,7 +69,8 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
   const labs = (
     <section>
-      <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">Model Labs</h2>
+      <div className="eyebrow">Labs</div>
+      <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[28px]">Model Labs</h2>
       <p className="mt-1 text-sm text-muted">Explore the AI labs powering models on Vlipa</p>
       <div className="scrollbar-none mt-6 flex gap-3 overflow-x-auto">
         {LABS.map((l) => (
@@ -78,7 +80,7 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
               setLab(lab === l ? null : l);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className={`flex h-32 w-36 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border bg-panel text-sm transition hover:border-line-2 ${lab === l ? "border-[#8a8a8a]" : "border-line"}`}
+            className={`lift flex h-32 w-36 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl border bg-panel text-sm ${lab === l ? "border-accent" : "border-line"}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={LAB_LOGOS[l] ?? ""} alt={l} className={`h-9 w-9 object-contain ${LAB_LOGOS[l] ? "" : "hidden"}`} />
@@ -92,24 +94,24 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
   return (
     <div className="space-y-12">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="glass sticky top-[104px] z-20 flex flex-wrap items-center gap-2 rounded-2xl p-1.5 lg:top-[66px]">
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dim" size={15} />
-          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models" className="input h-8 pl-8" />
+          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search models" className="input h-9 rounded-xl pl-8" />
         </div>
         <div className="scrollbar-none flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`h-8 shrink-0 rounded-md px-2.5 text-[13px] font-medium transition ${tab === t.key ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}
+              className={`h-8 shrink-0 rounded-full px-3 text-[13px] font-medium transition ${tab === t.key ? "bg-gradient-to-r from-accent to-accent-2 text-white" : "text-muted hover:bg-panel-2 hover:text-white"}`}
             >
               {t.label}
             </button>
           ))}
         </div>
         {lab && (
-          <button onClick={() => setLab(null)} className="h-9 rounded-md bg-panel-2 px-3 text-sm">
+          <button onClick={() => setLab(null)} className="h-8 rounded-full bg-panel-2 px-3 text-sm">
             {lab} ✕
           </button>
         )}

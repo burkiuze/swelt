@@ -10,18 +10,19 @@ export async function LatestModels() {
   return (
     <section>
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-2 rounded-md bg-panel-2 px-3 py-1.5 text-sm font-semibold">
-          <Sparkles size={14} /> Latest models
-        </span>
+        <div>
+          <div className="eyebrow flex items-center gap-1.5"><Sparkles size={12} /> Fresh drops</div>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight">Latest models</h2>
+        </div>
         <Link href="/explore" className="btn">
           See all <ArrowRight size={15} />
         </Link>
       </div>
-      <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {latest.map((m) => (
-          <Link key={m.id} href={`/models/${m.id}`} className="card flex overflow-hidden transition hover:border-line-2">
-            <ModelThumb model={m} preview={previews[m.id]} className="w-20 shrink-0" />
-            <div className="min-w-0 space-y-2 p-3">
+          <Link key={m.id} href={`/models/${m.id}`} className="card lift flex items-center gap-1 overflow-hidden p-1.5">
+            <ModelThumb model={m} preview={previews[m.id]} className="h-16 w-16 shrink-0 rounded-[11px]" />
+            <div className="min-w-0 space-y-1.5 px-2.5">
               <ModelName id={m.id} className="block text-sm" />
               <div className="flex items-center gap-2">
                 <CategoryChip category={m.category} />

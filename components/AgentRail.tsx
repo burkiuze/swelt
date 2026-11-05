@@ -14,8 +14,8 @@ const ITEMS = [
 
 /** fal-style icon rail on the left of the agent. */
 export function AgentRail({ onTogglePanel }: { onTogglePanel?: () => void }) {
-  const cls = "group relative flex h-9 w-9 items-center justify-center rounded-md text-muted transition hover:bg-panel-2 hover:text-white";
-  const tip = "pointer-events-none absolute left-11 z-50 whitespace-nowrap rounded-md bg-[#2a2a2a] px-2 py-1 text-xs text-white opacity-0 shadow transition group-hover:opacity-100";
+  const cls = "group relative flex h-9 w-9 items-center justify-center rounded-xl text-muted transition hover:bg-accent-soft hover:text-accent";
+  const tip = "pointer-events-none absolute left-11 z-50 whitespace-nowrap rounded-full border border-line-2 bg-panel px-2.5 py-1 text-xs text-white opacity-0 shadow transition group-hover:opacity-100";
   return (
     <aside className="hidden w-14 shrink-0 flex-col items-center border-r border-line py-2 md:flex">
       <button onClick={onTogglePanel} className={cls} aria-label="Toggle media panel">

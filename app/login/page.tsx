@@ -55,7 +55,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <Link href="/docs" className="hover:text-white">Docs</Link>
       </nav>
 
-      <div className="relative z-10 w-full max-w-[380px] rounded-2xl border border-white/10 bg-[#141414]/80 p-7 shadow-2xl shadow-black/50 backdrop-blur-xl">
+      <div className="relative z-10 w-full max-w-[380px] rounded-2xl border border-white/10 bg-panel/80 p-7 shadow-2xl shadow-black/50 backdrop-blur-xl">
         <div className="flex flex-col items-center text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,7 +65,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <p className="mt-1 text-sm text-muted">Sign in or create your account</p>
         </div>
 
-        {error && <div className="mt-5 rounded-md border border-[#e5484d]/30 bg-[#e5484d]/10 px-3 py-2 text-center text-xs text-[#ff9592]">{ERRORS[error] ?? "Sign-in failed. Please try again."}</div>}
+        {error && <div className="mt-5 rounded-lg border border-[#e5484d]/30 bg-[#e5484d]/10 px-3 py-2 text-center text-xs text-[#ff9592]">{ERRORS[error] ?? "Sign-in failed. Please try again."}</div>}
 
         <div className="mt-6 space-y-2.5">
           <form action={signInWith.bind(null, "google", next)}>

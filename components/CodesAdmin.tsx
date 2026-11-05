@@ -128,14 +128,14 @@ export function CodesAdmin() {
             <div className="text-sm font-medium">{fresh.length} new codes</div>
             <CopyBtn text={fresh.join("\n")} label="Copy all" />
           </div>
-          <pre className="max-h-60 overflow-auto rounded-md bg-[#151515] p-3 font-mono text-xs leading-6">{fresh.join("\n")}</pre>
+          <pre className="max-h-60 overflow-auto rounded-lg bg-sunken p-3 font-mono text-xs leading-6">{fresh.join("\n")}</pre>
         </div>
       )}
 
       <div className="card overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 border-b border-line p-3 text-sm">
           {(["unused", "used", "all"] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className={`rounded-md px-2.5 py-1 capitalize ${filter === f ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}>
+            <button key={f} onClick={() => setFilter(f)} className={`rounded-lg px-2.5 py-1 capitalize ${filter === f ? "bg-panel-2 text-white" : "text-muted hover:text-white"}`}>
               {f}
             </button>
           ))}

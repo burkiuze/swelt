@@ -3,7 +3,7 @@ import { MODELS } from "@/lib/catalog";
 
 export const metadata = { title: "API docs — Vlipa" };
 
-const pre = "overflow-x-auto rounded-lg border border-line bg-[#0c0c0e] p-4 text-[13px] leading-relaxed text-zinc-300";
+const pre = "overflow-x-auto rounded-lg border border-line bg-sunken p-4 text-[13px] leading-relaxed text-zinc-300";
 
 export default function Page() {
   return (

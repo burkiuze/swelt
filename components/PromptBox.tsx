@@ -14,7 +14,7 @@ export function AgentControls({ prefs, onChange }: { prefs: AgentPrefs; onChange
       <button
         type="button"
         onClick={() => onChange({ ...prefs, approval: !prefs.approval })}
-        className={`flex items-center gap-1.5 rounded-md px-2 py-1 transition hover:bg-panel-2 ${prefs.approval ? "text-white" : "text-muted"}`}
+        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 transition hover:bg-panel-2 ${prefs.approval ? "text-white" : "text-muted"}`}
         title="When on, the agent proposes model runs and waits for your approval"
       >
         <Hand size={14} strokeWidth={1.8} /> {prefs.approval ? "Ask for approval" : "Auto-run"}
@@ -48,9 +48,9 @@ export function PromptBox() {
 
   return (
     <div className="mx-auto w-full max-w-[820px]">
-      <div className="rounded-lg border border-line-2 bg-[#252525] shadow-lg shadow-black/20">
+      <div className="glass rounded-[22px] p-1 text-left shadow-[0_30px_80px_-40px_var(--color-accent)] transition focus-within:border-accent/60 focus-within:shadow-[0_0_0_4px_var(--color-accent-soft),0_30px_80px_-40px_var(--color-accent)]">
         <div className="flex items-center gap-3 p-2">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#1a1a1a] text-muted">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/25 to-accent-2/10 text-accent">
             <TextQuote size={16} strokeWidth={1.8} />
           </span>
           <textarea
@@ -67,23 +67,23 @@ export function PromptBox() {
             className="flex-1 resize-none bg-transparent py-2 text-[15px] outline-none placeholder:text-dim"
           />
           <Mic size={16} className="shrink-0 text-muted" />
-          <button onClick={() => go()} disabled={!text.trim()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#333] text-white transition hover:bg-[#3d3d3d] disabled:text-dim" aria-label="Send">
+          <button onClick={() => go()} disabled={!text.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2 text-white shadow-[0_6px_18px_-6px_var(--color-accent)] transition hover:brightness-110 disabled:from-hover disabled:to-hover disabled:text-dim disabled:shadow-none" aria-label="Send">
             <ArrowUp size={16} />
           </button>
         </div>
-        <div className="flex items-center gap-2 border-t border-line px-2.5 py-1">
+        <div className="flex items-center gap-2 rounded-b-[18px] border-t border-line/70 px-2.5 py-1">
           <Plus size={15} className="text-dim" />
           <div className="flex-1">
             <AgentControls prefs={prefs} onChange={setPrefs} />
           </div>
         </div>
       </div>
-      <div className="scrollbar-none mt-3 flex gap-3 overflow-x-auto">
+      <div className="scrollbar-none mt-4 flex gap-2.5 overflow-x-auto pb-1 text-left">
         {IDEAS.map((i) => (
-          <button key={i.label} onClick={() => go(i.q)} className="flex h-14 w-[250px] shrink-0 items-center gap-2.5 overflow-hidden rounded-md bg-[#232323] text-left transition hover:bg-[#2a2a2a]">
+          <button key={i.label} onClick={() => go(i.q)} className="lift flex h-14 w-[250px] shrink-0 items-center gap-2.5 overflow-hidden rounded-2xl border border-line bg-panel/70 p-1.5 text-left backdrop-blur">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={i.img} alt="" className="h-full w-14 shrink-0 object-cover" />
-            <span className="line-clamp-2 pr-3 text-[13px] font-semibold leading-snug">{i.label}</span>
+            <img src={i.img} alt="" className="h-full w-11 shrink-0 rounded-xl object-cover" />
+            <span className="line-clamp-2 pr-2 text-[12.5px] font-medium leading-snug">{i.label}</span>
           </button>
         ))}
       </div>

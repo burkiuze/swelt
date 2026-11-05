@@ -48,7 +48,7 @@ export function ModelPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] transition ${open ? "bg-panel-2" : "hover:bg-panel-2"}`}
+        className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-[13px] transition ${open ? "bg-panel-2" : "hover:bg-panel-2"}`}
       >
         <BrainCircuit size={14} strokeWidth={1.8} className="text-muted" />
         <span className="font-semibold">{current.label}</span>
@@ -57,7 +57,7 @@ export function ModelPicker({
       </button>
       {open && (
         <div
-          className={`absolute bottom-full z-50 mb-2 w-64 overflow-hidden rounded-lg border border-line-2 bg-[#202020] p-1 text-sm shadow-xl shadow-black/40 ${
+          className={`absolute bottom-full z-50 mb-2 w-64 overflow-hidden rounded-lg border border-line-2 bg-panel-2 p-1 text-sm shadow-xl shadow-black/40 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
@@ -67,7 +67,7 @@ export function ModelPicker({
               key={l.key}
               type="button"
               onClick={() => onChange({ llm: l.key, effort })}
-              className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left hover:bg-[#2a2a2a]"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left hover:bg-hover"
             >
               <span className="flex-1">
                 <span className="block font-medium">{l.label}</span>
@@ -87,7 +87,7 @@ export function ModelPicker({
                 onChange({ llm, effort: e });
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left hover:bg-[#2a2a2a]"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left hover:bg-hover"
             >
               <span className="flex-1">
                 <span className="capitalize">{e}</span>

@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { Film, Image as ImageIcon, SquareArrowOutUpRight, Type, Video } from "lucide-react";
+import { ArrowUpRight, Film, Image as ImageIcon, Type, Video } from "lucide-react";
 import type { Category, Model } from "@/lib/catalog";
 
 const ICON = { text: Type, image: ImageIcon, video: Video } as const;
 
-export function CategoryChip({ category }: { category: Category }) {
+export function CategoryChip({ category, solid = false }: { category: Category; solid?: boolean }) {
   const [from, to] = category.split("-to-") as (keyof typeof ICON)[];
   const From = ICON[from];
   const To = ICON[to];
-  const tone =
-    from === "text"
+  const tone = solid
+    ? "border-white/15 bg-black/45 text-white backdrop-blur"
+    : from === "text"
       ? "text-[#b4a7f5] border-[#b4a7f5]/25 bg-[#b4a7f5]/5"
       : from === "video"
         ? "text-[#bef264] border-[#bef264]/25 bg-[#bef264]/5"
@@ -17,7 +18,7 @@ export function CategoryChip({ category }: { category: Category }) {
   return (
     <span className={`cat ${tone}`}>
       <From size={12} strokeWidth={1.8} />
-      {category}
+      {category.replace(/-/g, " ")}
       <To size={12} strokeWidth={1.8} />
     </span>
   );
@@ -45,7 +46,7 @@ export type Preview = { url: string; kind: "image" | "video" };
 export function ModelThumb({ model, preview, className = "" }: { model: Model; preview?: Preview | null; className?: string }) {
   if (!preview) return <ModelArt model={model} className={className} />;
   return (
-    <div className={`relative overflow-hidden bg-[#141414] ${className}`}>
+    <div className={`relative overflow-hidden bg-sunken ${className}`}>
       {preview.kind === "video" ? (
         <video src={preview.url} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
       ) : (
@@ -68,25 +69,32 @@ export function ModelName({ id, className = "" }: { id: string; className?: stri
 
 export function ModelCard({ model, preview }: { model: Model; preview?: Preview | null }) {
   return (
-    <Link href={`/models/${model.id}`} className="card group block overflow-hidden transition hover:border-line-2">
-      <div className="relative">
-        <ModelThumb model={model} preview={preview} className="aspect-[16/9]" />
-        {model.isNew && <span className="absolute left-3 top-3 rounded bg-[#d9f99d] px-1.5 py-0.5 text-[11px] font-medium text-black">new</span>}
+    <Link href={`/models/${model.id}`} className="card lift group block overflow-hidden p-1.5">
+      <div className="relative overflow-hidden rounded-[11px]">
+        <ModelThumb model={model} preview={preview} className="aspect-[16/10] transition duration-500 group-hover:scale-[1.03]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
+        {model.isNew && (
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-gradient-to-r from-accent to-accent-2 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-white shadow">
+            New
+          </span>
+        )}
+        <span className="absolute bottom-2.5 left-2.5">
+          <CategoryChip category={model.category} solid />
+        </span>
+        <span className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur transition group-hover:opacity-100">
+          <ArrowUpRight size={14} />
+        </span>
       </div>
-      <div className="space-y-2.5 p-4">
-        <div className="flex items-center gap-2 text-[15px]">
-          <ModelName id={model.id} className="min-w-0 flex-1" />
-          <SquareArrowOutUpRight size={13} className="shrink-0 text-dim" />
-        </div>
+      <div className="space-y-2 px-2.5 pb-2.5 pt-3">
+        <ModelName id={model.id} className="block text-[15px]" />
         <p className="line-clamp-2 text-[13px] leading-relaxed text-muted">{model.description}</p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 pt-0.5">
           {model.tags.slice(0, 3).map((t) => (
             <span key={t} className="chip">
               {t}
             </span>
           ))}
         </div>
-        <CategoryChip category={model.category} />
       </div>
     </Link>
   );
@@ -94,8 +102,8 @@ export function ModelCard({ model, preview }: { model: Model; preview?: Preview 
 
 export function ModelRow({ model, preview }: { model: Model; preview?: Preview | null }) {
   return (
-    <Link href={`/models/${model.id}`} className="flex items-center gap-3 rounded-md p-1.5 hover:bg-panel-2">
-      <ModelThumb model={model} preview={preview} className="h-11 w-11 shrink-0 rounded-md" />
+    <Link href={`/models/${model.id}`} className="flex items-center gap-3 rounded-xl p-1.5 hover:bg-panel-2">
+      <ModelThumb model={model} preview={preview} className="h-11 w-11 shrink-0 rounded-lg" />
       <div className="min-w-0">
         <ModelName id={model.id} className="block text-sm" />
         <div className="truncate text-xs text-dim">{model.description}</div>
