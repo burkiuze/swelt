@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BrainCircuit, Check, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { BrainCircuit, Check, ChevronDown, Lock } from "lucide-react";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
+import { defaultLlm, llmAllowed } from "@/lib/plans";
+import { usePlan } from "./usePlan";
 
 const EFFORT_HINT: Record<Effort, string> = {
   low: "Fastest replies",
@@ -41,6 +44,12 @@ export function ModelPicker({
     };
   }, [open]);
 
+  const plan = usePlan();
+  // Fall back to a model the plan includes (e.g. a Starter/Pro user who had Opus selected).
+  useEffect(() => {
+    if (plan && !llmAllowed(plan, llm)) onChange({ llm: defaultLlm(plan), effort });
+  }, [plan, llm, effort, onChange]);
+
   const current = LLMS.find((l) => l.key === llm) ?? LLMS[0];
 
   return (
@@ -57,26 +66,44 @@ export function ModelPicker({
       </button>
       {open && (
         <div
-          className={`absolute bottom-full z-50 mb-2 w-64 overflow-hidden rounded-lg border border-line-2 bg-[#202020] p-1 text-sm shadow-xl shadow-black/40 ${
+          className={`absolute bottom-full z-50 mb-2 w-64 overflow-hidden rounded-lg text-left border border-line-2 bg-[#202020] p-1 text-sm shadow-xl shadow-black/40 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
           <div className="px-2.5 pb-1 pt-2 text-xs font-medium text-dim">Model</div>
-          {LLMS.map((l) => (
-            <button
-              key={l.key}
-              type="button"
-              onClick={() => onChange({ llm: l.key, effort })}
-              className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left hover:bg-[#2a2a2a]"
-            >
-              <span className="flex-1">
-                <span className="block font-medium">{l.label}</span>
-                <span className="block text-xs text-dim">{l.vendor}</span>
-              </span>
-              {l.default && <span className="rounded bg-[#d9f99d]/15 px-1.5 py-0.5 text-[11px] font-medium text-[#d9f99d]">Default</span>}
-              <Check size={15} className={l.key === llm ? "text-white" : "invisible"} />
-            </button>
-          ))}
+          {LLMS.map((l) => {
+            const locked = plan !== null && !llmAllowed(plan, l.key);
+            return locked ? (
+              <Link
+                key={l.key}
+                href="/pricing"
+                className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left opacity-60 hover:bg-[#2a2a2a] hover:opacity-100"
+                title="Included in the Ultra plan"
+              >
+                <span className="flex-1">
+                  <span className="block font-medium">{l.label}</span>
+                  <span className="block text-xs text-dim">{l.vendor}</span>
+                </span>
+                <span className="flex items-center gap-1 rounded bg-[#f59e0b]/15 px-1.5 py-0.5 text-[11px] font-medium text-[#fbbf24]">
+                  <Lock size={10} /> Ultra
+                </span>
+              </Link>
+            ) : (
+              <button
+                key={l.key}
+                type="button"
+                onClick={() => onChange({ llm: l.key, effort })}
+                className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left hover:bg-[#2a2a2a]"
+              >
+                <span className="flex-1">
+                  <span className="block font-medium">{l.label}</span>
+                  <span className="block text-xs text-dim">{l.vendor}</span>
+                </span>
+                {l.ultra && <span className="rounded bg-[#f59e0b]/15 px-1.5 py-0.5 text-[11px] font-medium text-[#fbbf24]">Ultra</span>}
+                <Check size={15} className={l.key === llm ? "text-white" : "invisible"} />
+              </button>
+            );
+          })}
           <div className="my-1 h-px bg-line" />
           <div className="px-2.5 pb-1 pt-1.5 text-xs font-medium text-dim">Reasoning effort</div>
           {EFFORTS.map((e) => (

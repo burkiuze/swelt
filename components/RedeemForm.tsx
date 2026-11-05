@@ -23,7 +23,8 @@ export function RedeemForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not redeem the code");
-      setMsg({ ok: true, text: `$${Number(data.added).toFixed(2)} added. New balance: $${Number(data.credits).toFixed(2)}` });
+      const plan = data.plan ? `${String(data.plan)[0].toUpperCase()}${String(data.plan).slice(1)} plan activated. ` : "";
+      setMsg({ ok: true, text: `${plan}$${Number(data.added).toFixed(2)} added. New balance: $${Number(data.credits).toFixed(2)}` });
       setCode("");
       router.refresh();
       window.dispatchEvent(new Event("swelt:credits"));

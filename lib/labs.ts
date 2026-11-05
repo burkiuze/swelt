@@ -1,0 +1,20 @@
+// Shared lab → logo map (public/brand/labs). Logos identify each lab's models.
+export const LAB_LOGOS: Record<string, string> = {
+  higgsfield: "/brand/labs/higgsfield.png",
+  kwaivgi: "/brand/labs/kwaivgi.svg",
+  google: "/brand/labs/google.svg",
+  "tongyi-mai": "/brand/labs/tongyi-mai.svg",
+  qwen: "/brand/labs/qwen.svg",
+  alibaba: "/brand/labs/alibaba.svg",
+  pruna: "/brand/labs/pruna.svg",
+  "black-forest-labs": "/brand/labs/black-forest-labs.svg",
+  minimax: "/brand/labs/minimax.svg",
+  vidu: "/brand/labs/vidu.svg",
+  tencent: "/brand/labs/tencent.svg",
+  "bytedance-seed": "/brand/labs/bytedance-seed.svg",
+  recraft: "/brand/labs/recraft.svg",
+  meta: "/brand/labs/meta.svg",
+  "x-ai": "/brand/labs/x-ai.svg",
+  heygen: "/brand/labs/heygen.svg",
+  tbc: "/brand/labs/tbc.svg",
+};

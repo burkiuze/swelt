@@ -3,20 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
 import { LABS, MODELS, type Model } from "@/lib/catalog";
+import { LAB_LOGOS } from "@/lib/labs";
 import { ModelCard, type Preview } from "./ModelCard";
 
-const LAB_LOGOS: Record<string, string> = {
-  higgsfield: "/brand/labs/higgsfield.png",
-  kwaivgi: "/brand/labs/kwaivgi.svg",
-  google: "/brand/labs/google.svg",
-  "tongyi-mai": "/brand/labs/tongyi-mai.svg",
-  qwen: "/brand/labs/qwen.svg",
-  alibaba: "/brand/labs/alibaba.svg",
-  pruna: "/brand/labs/pruna.svg",
-  "black-forest-labs": "/brand/labs/black-forest-labs.svg",
-  minimax: "/brand/labs/minimax.svg",
-  vidu: "/brand/labs/vidu.svg",
-};
 
 const TABS = [
   { key: "all", label: "All" },

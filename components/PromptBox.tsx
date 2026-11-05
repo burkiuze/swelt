@@ -1,14 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ArrowUp, Clapperboard, Hand, ImageIcon, Mic, Plus, Shuffle, Sparkles } from "lucide-react";
 import type { Effort, LlmKey } from "@/lib/llm";
+import { MediaPicker } from "./MediaPicker";
 import { ModelPicker } from "./ModelPicker";
 
-export type AgentPrefs = { llm: LlmKey; effort: Effort; approval: boolean };
+export type AgentPrefs = { llm: LlmKey; effort: Effort; approval: boolean; media: string };
 
-export function AgentControls({ prefs, onChange }: { prefs: AgentPrefs; onChange: (p: AgentPrefs) => void }) {
+export function AgentControls({ prefs, onChange, kind }: { prefs: AgentPrefs; onChange: (p: AgentPrefs) => void; kind?: "image" | "video" }) {
+  const latest = useRef(prefs);
+  latest.current = prefs;
+  const setLlm = useCallback((v: { llm: LlmKey; effort: Effort }) => onChange({ ...latest.current, ...v }), [onChange]);
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
       <button
@@ -20,10 +24,8 @@ export function AgentControls({ prefs, onChange }: { prefs: AgentPrefs; onChange
         <Hand size={14} strokeWidth={1.8} /> {prefs.approval ? "Ask for approval" : "Auto-run"}
       </button>
       <span className="flex-1" />
-      <ModelPicker llm={prefs.llm} effort={prefs.effort} onChange={(v) => onChange({ ...prefs, ...v })} />
-      <span className="hidden items-center gap-1.5 px-2 text-muted sm:flex">
-        <ImageIcon size={14} strokeWidth={1.8} /> <span className="font-semibold text-white">Media</span> RunPod
-      </span>
+      <ModelPicker llm={prefs.llm} effort={prefs.effort} onChange={setLlm} />
+      <MediaPicker kind={kind} value={prefs.media} onChange={(media) => onChange({ ...prefs, media })} />
     </div>
   );
 }
@@ -66,13 +68,15 @@ export function PromptBox() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("agent");
   const [text, setText] = useState("");
-  const [prefs, setPrefs] = useState<AgentPrefs>({ llm: "opus", effort: "medium", approval: true });
+  const [prefs, setPrefs] = useState<AgentPrefs>({ llm: "glm", effort: "medium", approval: true, media: "auto" });
   const [ideas, setIdeas] = useState(() => IDEAS.agent.slice(0, 3));
   const current = MODES.find((m) => m.key === mode)!;
 
   const go = (q = text) => {
     if (!q.trim()) return;
     const p = new URLSearchParams({ q: current.prefix + q, llm: prefs.llm, effort: prefs.effort, approval: prefs.approval ? "1" : "0" });
+    if (prefs.media !== "auto") p.set("media", prefs.media);
+    if (mode !== "agent") p.set("kind", mode);
     router.push(`/agent?${p}`);
   };
 
@@ -115,7 +119,7 @@ export function PromptBox() {
         <div className="flex items-center gap-2 px-2.5 pb-2.5 pt-1">
           <Plus size={16} className="mx-1 shrink-0 text-muted" />
           <div className="min-w-0 flex-1">
-            <AgentControls prefs={prefs} onChange={setPrefs} />
+            <AgentControls prefs={prefs} onChange={setPrefs} kind={mode === "agent" ? undefined : mode} />
           </div>
           <Mic size={16} className="shrink-0 text-muted" />
           <button

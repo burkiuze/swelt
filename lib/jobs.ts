@@ -4,6 +4,7 @@ import type { Caller } from "./auth";
 import { getModel, type Model } from "./catalog";
 import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
 import { HF_PREFIX, hfMedia, hfStatus, hfSubmit } from "./higgsfield";
+import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit } from "./openrouter-media";
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
 import { persistMedia } from "./storage";
 
@@ -47,7 +48,25 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   }
 
   try {
-    const { endpoint, job } = model.provider === "higgsfield" ? await hfSubmit(model, input) : await submit(model, input);
+    // OpenRouter images are synchronous: generate, store and finish right away.
+    if (model.provider === "openrouter" && model.kind === "image") {
+      const r = await orImage(model, input, gen.id);
+      gen = await finish(gen, {
+        status: r.media.length ? "COMPLETED" : "FAILED",
+        output: r.output,
+        media: r.media,
+        cost: r.cost ?? model.price,
+        error: r.media.length ? null : "Model finished but returned no media",
+        charge: !caller.isAdmin,
+      });
+      if (caller.isAdmin && r.media[0] && dbEnabled()) {
+        const p = typeof input.prompt === "string" ? input.prompt : null;
+        await setShowcase(model.id, r.media[0], model.kind, p, source !== "showcase").catch(() => {});
+      }
+      return view(gen, model);
+    }
+    const { endpoint, job } =
+      model.provider === "higgsfield" ? await hfSubmit(model, input) : model.provider === "openrouter" ? await orVideoSubmit(model, input) : await submit(model, input);
     gen = { ...gen, endpoint_id: endpoint, runpod_job_id: job.id, status: job.status || "IN_QUEUE" };
     if (dbEnabled()) await setJob(gen.id, `${endpoint}:${job.id}`, gen.status);
     else memory.set(gen.id, gen);
@@ -68,15 +87,21 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
 
   // runpod_job_id is stored as "<endpoint>:<job id>"
   const [endpoint, jobId] = gen.runpod_job_id.includes(":") ? gen.runpod_job_id.split(/:(.+)/) : [gen.endpoint_id, gen.runpod_job_id];
-  const job = endpoint.startsWith(HF_PREFIX) ? await hfStatus(jobId) : await rpStatus(endpoint, jobId);
+  const isOr = endpoint.startsWith(OR_PREFIX);
+  const job = endpoint.startsWith(HF_PREFIX) ? await hfStatus(jobId) : isOr ? await orVideoStatus(jobId) : await rpStatus(endpoint, jobId);
   if (!isFinal(job.status)) {
     gen = { ...gen, status: job.status };
     return view(gen, model);
   }
   if (job.status === "COMPLETED") {
-    let media = endpoint.startsWith(HF_PREFIX) ? hfMedia(job.output) : extractMedia(job.output);
-    media = await Promise.all(media.map((u, i) => persistMedia(u, `${gen!.id}-${i}`, model.kind)));
-    const cost = extractCost(job.output) ?? model.price;
+    let media: string[];
+    if (isOr) media = await orVideoMedia(jobId, job.output, gen.id);
+    else {
+      media = endpoint.startsWith(HF_PREFIX) ? hfMedia(job.output) : extractMedia(job.output);
+      media = await Promise.all(media.map((u, i) => persistMedia(u, `${gen!.id}-${i}`, model.kind)));
+    }
+    const seconds = Number(gen.input?.duration) || 5;
+    const cost = (isOr ? orCost(job.output) : extractCost(job.output)) ?? (model.perSecond ? model.perSecond * seconds : model.price);
     const error = media.length ? null : "Model finished but returned no media";
     gen = await finish(gen, { status: media.length ? "COMPLETED" : "FAILED", output: job.output, media, cost, error, charge: !caller.isAdmin });
     // Admin runs become model previews: "showcase" runs replace the preview, others only fill a missing one.

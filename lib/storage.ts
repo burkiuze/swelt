@@ -22,7 +22,7 @@ function headers(extra: Record<string, string> = {}) {
 const extOf = (type: string, kind: string) =>
   type.split("/")[1]?.split(";")[0]?.replace("jpeg", "jpg").replace("quicktime", "mov") || (kind === "video" ? "mp4" : "png");
 
-async function putBytes(path: string, body: Blob | Buffer, type: string): Promise<string> {
+export async function putBytes(path: string, body: Blob | Buffer, type: string): Promise<string> {
   const res = await fetch(endpoint(`?path=${encodeURIComponent(path)}&type=${encodeURIComponent(type)}`), {
     method: "POST",
     headers: headers({ "content-type": type }),

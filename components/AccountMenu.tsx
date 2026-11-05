@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket } from "lucide-react";
 import { signOutAction } from "@/app/actions";
+import { planName, type PlanKey } from "@/lib/plans";
 
 export type Me = {
   signedIn: boolean;
@@ -12,6 +13,8 @@ export type Me = {
   email?: string | null;
   name?: string | null;
   image?: string | null;
+  plan?: PlanKey;
+  planExpires?: string | null;
 };
 
 function useOutside<T extends HTMLElement>(open: boolean, close: () => void) {
@@ -62,7 +65,18 @@ export function CreditsPill({ me }: { me: Me }) {
         <div className="absolute right-0 top-10 z-50 w-64 rounded-lg border border-line-2 bg-[#202020] p-3 text-sm shadow-xl shadow-black/40">
           <div className="text-xs text-dim">Credits balance</div>
           <div className={`mt-1 text-2xl font-semibold ${low(me) ? "text-[#ff9592]" : ""}`}>{money(me)}</div>
-          <p className="mt-1 text-xs text-muted">Each run is charged at the provider&apos;s price.</p>
+          <p className="mt-1 text-xs text-muted">Each run is charged at the model&apos;s listed price.</p>
+          <div className="mt-3 flex items-center justify-between rounded-md bg-panel px-2.5 py-2 text-xs">
+            <span>
+              Plan: <span className="font-semibold">{planName(me.plan ?? "free")}</span>
+              {me.planExpires && <span className="text-dim"> · until {new Date(me.planExpires).toLocaleDateString()}</span>}
+            </span>
+            {me.plan !== "ultra" && (
+              <Link href="/pricing" onClick={() => setOpen(false)} className="font-semibold text-[#fbbf24] hover:underline">
+                Upgrade
+              </Link>
+            )}
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Link href="/usage" onClick={() => setOpen(false)} className="btn justify-center">Usage</Link>
             <Link href="/account#billing" onClick={() => setOpen(false)} className="btn btn-primary justify-center">Redeem code</Link>

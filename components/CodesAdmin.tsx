@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PLANS } from "@/lib/plans";
 import { Check, Copy, Download, Trash2 } from "lucide-react";
 
 type Code = {
@@ -36,7 +37,8 @@ const fmt = (d: string | null) => (d ? new Date(d).toLocaleString() : "");
 export function CodesAdmin() {
   const [items, setItems] = useState<Code[]>([]);
   const [count, setCount] = useState(10);
-  const [credits, setCredits] = useState(10);
+  const [credits, setCredits] = useState(20);
+  const [plan, setPlan] = useState<"" | "starter" | "pro" | "ultra">("pro");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -62,7 +64,7 @@ export function CodesAdmin() {
       const r = await fetch("/api/admin/codes", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ count, credits, note }),
+        body: JSON.stringify({ count, credits, note, plan: plan || undefined }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || "Failed to create codes");
@@ -103,7 +105,27 @@ export function CodesAdmin() {
         <p className="mt-1 text-sm text-muted">Create single-use codes that add credits. Buyers redeem them on their Account page.</p>
       </div>
 
-      <form onSubmit={create} className="card grid gap-3 p-4 sm:grid-cols-[100px_120px_1fr_auto] sm:items-end">
+      <form onSubmit={create} className="card grid gap-3 p-4 sm:grid-cols-[150px_90px_110px_1fr_auto] sm:items-end">
+        <label className="text-xs text-dim">
+          Package
+          <select
+            value={plan}
+            onChange={(e) => {
+              const v = e.target.value as typeof plan;
+              setPlan(v);
+              const p = PLANS.find((x) => x.key === v);
+              if (p) setCredits(p.credits);
+            }}
+            className="input mt-1 h-8"
+          >
+            {PLANS.map((p) => (
+              <option key={p.key} value={p.key}>
+                {p.name} (${p.price})
+              </option>
+            ))}
+            <option value="">Credits only</option>
+          </select>
+        </label>
         <label className="text-xs text-dim">
           Count
           <input type="number" min={1} max={200} value={count} onChange={(e) => setCount(Number(e.target.value))} className="input mt-1 h-8" />

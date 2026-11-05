@@ -2,10 +2,12 @@ import "server-only";
 import type { Caller } from "./auth";
 import { catalogForAgent, getModel } from "./catalog";
 import { runAndWait, type JobView } from "./jobs";
-import type { Effort, LlmKey } from "./llm";
+import { llmLabel, type Effort, type LlmKey } from "./llm";
 
 export function llmSlug(key: LlmKey) {
   if (key === "sol") return process.env.OPENROUTER_MODEL_SOL || "openai/gpt-6.1-sol";
+  if (key === "glm") return process.env.OPENROUTER_MODEL_GLM || "z-ai/glm-5.3-flash";
+  if (key === "deepseek") return process.env.OPENROUTER_MODEL_DEEPSEEK || "deepseek/deepseek-v4.1-flash-1017";
   return process.env.OPENROUTER_MODEL_OPUS || "anthropic/claude-opus-5.5";
 }
 
@@ -26,7 +28,7 @@ const TOOLS = [
     function: {
       name: "generate_media",
       description:
-        "Run one Vlipa image/video model on RunPod. Returns the request status and media URLs. Use output URLs from earlier calls as `image`/`images` inputs to chain steps (e.g. generate an image, then animate it).",
+        "Run one Vlipa image/video model. Returns the request status and media URLs. Use output URLs from earlier calls as `image`/`images` inputs to chain steps (e.g. generate an image, then animate it).",
       parameters: {
         type: "object",
         properties: {
@@ -40,8 +42,9 @@ const TOOLS = [
   },
 ];
 
-function systemPrompt(approval: boolean) {
-  return `You are the Vlipa Agent, a creative director inside Vlipa — a generative media platform (image + video models served from RunPod).
+function systemPrompt(approval: boolean, media?: string) {
+  const picked = media ? getModel(media) : undefined;
+  return `You are the Vlipa Agent, a creative director inside Vlipa — a generative media platform (image + video models from several providers).
 The user describes what they want; you pick the right model(s), write strong, detailed prompts, and call generate_media.
 Guidelines:
 - Prefer one well-chosen model per step. For several variations, make several calls (max 4 per turn).
@@ -51,7 +54,7 @@ Guidelines:
 - After results arrive, reply briefly (2-4 sentences) in the user's language: what you made. Don't paste raw URLs; the UI shows media.
 - If the user just chats (e.g. says hello), answer briefly without calling tools.
 - End every final reply with one line "NEXT: <a short follow-up request the user could send next>" in the user's language.
-${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
+${picked ? `- THE USER PICKED THE MEDIA MODEL ${picked.id} (${picked.name}). Use only this model for every generate_media call.\n` : ""}${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
 Model catalog (inputs marked * are required):
 ${catalogForAgent()}`;
 }
@@ -80,15 +83,15 @@ async function chat(model: string, messages: Msg[], effort: Effort) {
 export async function runAgent(
   caller: Caller,
   history: ChatTurn[],
-  opts: { llm: LlmKey; effort: Effort; approval: boolean },
+  opts: { llm: LlmKey; effort: Effort; approval: boolean; media?: string },
 ): Promise<AgentResult> {
   const model = llmSlug(opts.llm);
-  const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval) }, ...history.slice(-20)];
+  const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval, opts.media) }, ...history.slice(-20)];
   const jobs: JobView[] = [];
   const proposals: Proposal[] = [];
   const steps: Step[] = [];
   const started = Date.now();
-  const label = opts.llm === "sol" ? "GPT-6.1 Sol" : "Opus 5.5";
+  const label = llmLabel(opts.llm);
   const done = (reply: string): AgentResult => {
     const m = reply.match(/\n?\s*NEXT:\s*(.+)\s*$/i);
     return { reply: (m ? reply.slice(0, m.index) : reply).trim(), jobs, proposals, model, steps, ms: Date.now() - started, suggestion: m ? m[1].trim() : null };
@@ -111,6 +114,7 @@ export async function runAgent(
         } catch {
           return { id: c.id, content: JSON.stringify({ error: "Invalid JSON arguments" }) };
         }
+        if (opts.media && getModel(opts.media)) args.model_id = opts.media;
         if (c.function.name !== "generate_media" || !getModel(args.model_id)) {
           return { id: c.id, content: JSON.stringify({ error: `Unknown tool or model: ${args.model_id}` }) };
         }

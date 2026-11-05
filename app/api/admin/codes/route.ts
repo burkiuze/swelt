@@ -2,6 +2,7 @@ import { getCaller } from "@/lib/auth";
 import { newCode, normalizeCode } from "@/lib/codes";
 import { createCodes, dbEnabled, deleteCode, listCodes } from "@/lib/db";
 import { errorResponse } from "@/lib/jobs";
+import { PLANS, type PlanKey } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -27,13 +28,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const count = Math.floor(Number(body.count));
-    const credits = Math.round(Number(body.credits) * 100) / 100;
+    const plan = PLANS.find((p) => p.key === body.plan)?.key ?? null;
+    const credits = Math.round(Number(body.credits ?? (plan ? PLANS.find((p) => p.key === plan)!.credits : 0)) * 100) / 100;
     const note = String(body.note || "").slice(0, 80);
     if (!(count >= 1 && count <= 200)) return Response.json({ error: "Count must be 1–200" }, { status: 400 });
     if (!(credits > 0 && credits <= 10_000)) return Response.json({ error: "Credits must be between 0 and 10,000" }, { status: 400 });
-    const codes = Array.from(new Set(Array.from({ length: count }, newCode)));
+    const codes = Array.from(new Set(Array.from({ length: count }, () => newCode(plan as PlanKey | null))));
     await createCodes(codes, credits, note || null);
-    return Response.json({ codes, credits, note });
+    return Response.json({ codes, credits, note, plan });
   } catch (e) {
     return errorResponse(e);
   }

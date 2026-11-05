@@ -28,6 +28,7 @@ import { FINAL, pollRun, startRun, upload, type JobView } from "@/lib/client";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { Media } from "./Media";
 import { AgentRail } from "./AgentRail";
+import { MediaPicker } from "./MediaPicker";
 import { ModelPicker } from "./ModelPicker";
 
 type Proposal = { model_id: string; input: Record<string, unknown>; reason?: string };
@@ -201,7 +202,9 @@ function Section({ title, count, icon, children }: { title: string; count: numbe
 
 export function AgentChat() {
   const params = useSearchParams();
-  const [llm, setLlm] = useState<LlmKey>((LLMS.find((l) => l.key === params.get("llm"))?.key ?? "opus") as LlmKey);
+  const [llm, setLlm] = useState<LlmKey>((LLMS.find((l) => l.key === params.get("llm"))?.key ?? "glm") as LlmKey);
+  const [media, setMedia] = useState<string>(params.get("media") || "auto");
+  const mediaKind = (["image", "video"].includes(params.get("kind") || "") ? params.get("kind") : undefined) as "image" | "video" | undefined;
   const [effort, setEffort] = useState<Effort>((EFFORTS.includes(params.get("effort") as Effort) ? params.get("effort") : "medium") as Effort);
   const [approval, setApproval] = useState(params.get("approval") === "1");
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -252,7 +255,7 @@ export function AgentChat() {
         const res = await fetch("/api/agent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: toHistory(next, jobsRef.current), llm, effort, approval }),
+          body: JSON.stringify({ messages: toHistory(next, jobsRef.current), llm, effort, approval, media: media === "auto" ? undefined : media }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
@@ -277,7 +280,7 @@ export function AgentChat() {
         setBusy(false);
       }
     },
-    [msgs, llm, effort, approval, busy, addJobs],
+    [msgs, llm, effort, approval, media, busy, addJobs],
   );
 
   useEffect(() => {
@@ -467,6 +470,7 @@ export function AgentChat() {
                 {approval ? <Hand size={14} /> : <Zap size={14} />} {approval ? "Ask for approval" : "Full auto"}
               </button>
               <span className="flex-1" />
+              <MediaPicker kind={mediaKind} value={media} onChange={setMedia} />
               <ModelPicker
                 llm={llm}
                 effort={effort}
