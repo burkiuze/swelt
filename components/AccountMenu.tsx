@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket } from "lucide-react";
+import { Bell, ChevronDown, CircleDollarSign, CircleUserRound, LogOut, Moon, Settings, SunMedium, SunMoon, Ticket, Users } from "lucide-react";
 import { signOutAction } from "@/app/actions";
 import { planName, type PlanKey } from "@/lib/plans";
 import { fmtCredits } from "@/lib/credits";
@@ -184,10 +184,16 @@ export function AccountMenu({ me }: { me: Me }) {
               <Bell size={16} className="text-muted" /> Notifications
             </Link>
             {me.unlimited && (
-              <Link href="/admin/codes" onClick={close} className={item}>
-                <Ticket size={16} className="text-muted" /> Redeem codes
-                <span className="ml-auto text-xs text-dim">Admin</span>
-              </Link>
+              <>
+                <Link href="/admin/users" onClick={close} className={item}>
+                  <Users size={16} className="text-muted" /> Users
+                  <span className="ml-auto text-xs text-dim">Admin</span>
+                </Link>
+                <Link href="/admin/codes" onClick={close} className={item}>
+                  <Ticket size={16} className="text-muted" /> Redeem codes
+                  <span className="ml-auto text-xs text-dim">Admin</span>
+                </Link>
+              </>
             )}
           </div>
           <div className="flex items-center gap-3 border-b border-line px-3.5 py-2.5">

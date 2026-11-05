@@ -61,3 +61,14 @@ export async function uploadFile(file: File, userId: string): Promise<string> {
   const path = `uploads/${userId.replace(/[^A-Za-z0-9_-]/g, "")}/${Date.now()}-${safe}`;
   return putBytes(path, Buffer.from(await file.arrayBuffer()), file.type);
 }
+
+export type ProfileRow = { user_id: string; email: string | null; credits: number | string; created_at: string };
+
+/** All user profiles (service role, via the secret-protected Edge Function). Admin use only. */
+export async function listProfiles(): Promise<ProfileRow[]> {
+  if (!storageEnabled()) return [];
+  const res = await fetch(endpoint("?action=profiles"), { method: "POST", headers: headers(), cache: "no-store", signal: AbortSignal.timeout(30_000) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `profiles ${res.status}`);
+  return Array.isArray(data.items) ? data.items : [];
+}
