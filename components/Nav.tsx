@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountMenu, CreditsPill, type Me } from "./AccountMenu";
-import { Crown, Film, FolderOpen, House, LayoutGrid, Search, Sparkles } from "lucide-react";
+import { Crown, FolderOpen, House, LayoutGrid, Search, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 
 const LINKS = [
@@ -76,7 +76,7 @@ export function Nav() {
         ) : null}
       </div>
       <nav className="scrollbar-none mx-auto flex max-w-[1400px] gap-0.5 overflow-x-auto px-2 sm:px-4">
-        {[...LINKS, ...(me?.unlimited ? [{ href: "/previews", label: "Previews", icon: Film }] : [])].map(({ href, label, icon: Icon }) => {
+        {LINKS.map(({ href, label, icon: Icon }) => {
           const active = isActive(path, href);
           return (
             <Link

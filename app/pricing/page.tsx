@@ -22,7 +22,10 @@ const THEME: Record<string, { card: string; text: string; accent: string; button
 
 const FAQ = [
   { q: "How do I get a plan?", a: "Buy a Vlipa code for the plan you want from our official store, then open Account → Credits and redeem it. Credits are added instantly and the plan turns on right away." },
-  { q: "What are credits?", a: "Credits are a dollar balance. Every image or video is charged at the model's listed price, so $1 of credits covers about 33 Qwen Image 3 images or ten 5-second Grok Imagine Video 1.5 Lite clips." },
+  {
+    q: "What are credits?",
+    a: `Credits are a dollar balance. Every image or video is charged at the price shown on the model, so $1 of credits covers about ${Math.floor(1 / IMG.price)} ${IMG.name} images or ${Math.floor(1 / ((VID.perSecond ?? VID.price) * VID_SECONDS))} ${VID_SECONDS}-second ${VID.name} clips.`,
+  },
   { q: "Do unused credits expire?", a: `No. Credits stay on your account. The plan itself (and its agent models) is active for ${PLAN_DAYS} days after you redeem the code.` },
   { q: "Which agent models come with each plan?", a: "Every plan includes GLM 5.3 Flash and DeepSeek V4.1 Flash. Ultra adds Opus 5.5 and GPT-6.1 Sol, our strongest planners." },
   { q: "Which media models come with Premium?", a: "Premium includes every OpenRouter image and video model (Qwen, FLUX 3, Seedream 5.0, Grok Imagine, HeyGen and more). Pro and Ultra add Kling 4.0, Genjutsu Light, Marketing Studio and the rest of the catalog." },

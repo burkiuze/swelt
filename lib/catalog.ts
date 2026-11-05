@@ -65,7 +65,7 @@ const resolution = (opts: string[], d: string): Field => ({ name: "resolution", 
 const aspect = (d = "16:9"): Field => ({ name: "aspect_ratio", label: "Aspect ratio", type: "select", options: ["16:9", "9:16", "1:1", "4:3", "3:4"], default: d });
 const audio: Field = { name: "generate_audio", label: "Generate audio", type: "boolean", default: true };
 
-export const MODELS: Model[] = [
+const BASE_MODELS: Model[] = [
   // ---------------- OpenRouter: image ----------------
   {
     id: "qwen/qwen-image-3-pro",
@@ -716,6 +716,21 @@ export const MODELS: Model[] = [
     gradient: ["#78716c", "#f59e0b", "#1c1917"],
   },
 ];
+
+
+/** Vlipa's margin on top of each provider's price (credits charged = provider cost × MARKUP). */
+export const MARKUP = 1.2;
+const up = (n: number) => Math.round(n * MARKUP * 10000) / 10000;
+const money = (n: number) => (n >= 1 ? n.toFixed(2) : String(Number(n.toPrecision(2))));
+const markLabel = (l: string) => l.replace(/\$([\d.]+)/, (_, n: string) => `$${money(Number(n) * MARKUP)}`);
+
+/** The catalog with the prices users are charged. */
+export const MODELS: Model[] = BASE_MODELS.map((m) => ({
+  ...m,
+  price: up(m.price),
+  perSecond: m.perSecond ? up(m.perSecond) : undefined,
+  priceLabel: markLabel(m.priceLabel),
+}));
 
 export const LABS = Array.from(new Set(MODELS.map((m) => m.lab)));
 
