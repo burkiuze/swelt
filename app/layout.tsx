@@ -13,7 +13,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+        <head>
+          <script
+            // Apply the saved theme before first paint (no flash).
+            dangerouslySetInnerHTML={{
+              __html: `try{var t=localStorage.getItem("vlipa-theme")||"dark";if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.classList.add("light")}catch(e){}`,
+            }}
+          />
+        </head>
         <body className="min-h-screen">
           <Nav />
           <main>{children}</main>

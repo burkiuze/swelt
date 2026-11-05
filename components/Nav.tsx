@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { signOutAction } from "@/app/actions";
+import { AccountMenu, CreditsPill, type Me } from "./AccountMenu";
 import { BookOpen, Film, FolderOpen, House, KeyRound, LayoutGrid, Search, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 
@@ -24,7 +24,7 @@ function isActive(path: string, href: string) {
 export function Nav() {
   const path = usePathname();
   const router = useRouter();
-  const [me, setMe] = useState<{ signedIn: boolean; credits: number | null; unlimited?: boolean; email?: string } | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
     const load = () =>
@@ -67,11 +67,8 @@ export function Nav() {
         </Link>
         {me?.signedIn ? (
           <>
-            <Link href="/usage" className="btn">
-              <span className="text-muted">Credits:</span>
-              {me.unlimited ? "Unlimited" : `$${(me.credits ?? 0).toFixed(2)}`}
-            </Link>
-            <UserMenu email={me.email ?? ""} />
+            <CreditsPill me={me} />
+            <AccountMenu me={me} />
           </>
         ) : me ? (
           <Link href={`/login?next=${encodeURIComponent(path)}`} className="btn btn-primary">
@@ -101,31 +98,3 @@ export function Nav() {
   );
 }
 
-function UserMenu({ email }: { email: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ededed] text-sm font-semibold uppercase text-black"
-        title={email}
-      >
-        {email[0] ?? "?"}
-      </button>
-      {open && (
-        <div className="absolute right-0 top-10 z-50 w-56 rounded-lg border border-line-2 bg-[#202020] p-1 text-sm shadow-xl shadow-black/40">
-          <div className="truncate px-2.5 py-2 text-xs text-dim">{email}</div>
-          <Link href="/usage" className="block rounded-md px-2.5 py-1.5 hover:bg-[#2a2a2a]" onClick={() => setOpen(false)}>
-            Usage & credits
-          </Link>
-          <Link href="/keys" className="block rounded-md px-2.5 py-1.5 hover:bg-[#2a2a2a]" onClick={() => setOpen(false)}>
-            API keys
-          </Link>
-          <form action={signOutAction}>
-            <button className="w-full rounded-md px-2.5 py-1.5 text-left text-[#ff9592] hover:bg-[#2a2a2a]">Sign out</button>
-          </form>
-        </div>
-      )}
-    </div>
-  );
-}

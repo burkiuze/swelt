@@ -129,3 +129,47 @@ body {
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
 }
+
+/* ---------- Light theme (html.light) ---------- */
+html.light {
+  --color-bg: #f7f7f7;
+  --color-panel: #ffffff;
+  --color-panel-2: #efefef;
+  --color-line: #e4e4e4;
+  --color-line-2: #d4d4d4;
+  --color-muted: #555555;
+  --color-dim: #8a8a8a;
+}
+html.light,
+html.light body {
+  background: var(--color-bg);
+  color: #171717;
+}
+html.light .text-white,
+html.light .hover\:text-white:hover { color: #111111; }
+html.light .text-zinc-200,
+html.light .text-zinc-300 { color: #333333; }
+html.light .text-zinc-400 { color: #555555; }
+html.light .btn { color: #171717; }
+html.light .btn:hover { background: #ececec; }
+html.light .btn-primary { background: #171717; border-color: #171717; color: #ffffff; }
+html.light .btn-primary:hover { background: #333333; }
+html.light .input { background: #ffffff; }
+html.light .chip { background: #ededed; color: #333333; }
+html.light .bg-\[\#141414\],
+html.light .bg-\[\#151515\],
+html.light .bg-\[\#0c0c0e\] { background-color: #f1f1f1; }
+html.light .bg-\[\#1a1a1a\],
+html.light .bg-\[\#1c1c1c\],
+html.light .bg-\[\#202020\],
+html.light .bg-\[\#232323\],
+html.light .bg-\[\#252525\] { background-color: #ffffff; }
+html.light .bg-\[\#2a2a2a\],
+html.light .hover\:bg-\[\#2a2a2a\]:hover,
+html.light .bg-\[\#333\] { background-color: #ececec; }
+html.light .bg-\[\#ededed\] { background-color: #171717; }
+html.light .bg-\[\#ededed\].text-black,
+html.light .bg-\[\#ededed\] .text-black { color: #ffffff; }
+html.light img[src^="/brand/"] { filter: invert(1); }
+html.light .shadow-black\/40,
+html.light .shadow-black\/50 { --tw-shadow-color: rgb(0 0 0 / 0.08); }

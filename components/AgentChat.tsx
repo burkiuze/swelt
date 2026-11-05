@@ -27,6 +27,7 @@ import { getModel } from "@/lib/catalog";
 import { FINAL, pollRun, startRun, upload, type JobView } from "@/lib/client";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { Media } from "./Media";
+import { AgentRail } from "./AgentRail";
 import { ModelPicker } from "./ModelPicker";
 
 type Proposal = { model_id: string; input: Record<string, unknown>; reason?: string };
@@ -316,6 +317,7 @@ export function AgentChat() {
 
   return (
     <div className="flex h-[calc(100dvh-5.5rem)] overflow-hidden">
+      <AgentRail onTogglePanel={() => setPanel((p) => !p)} />
       {/* ---------- chat column ---------- */}
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-4 text-sm">
