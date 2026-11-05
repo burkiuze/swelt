@@ -2,6 +2,7 @@ import { runAgent, type ChatTurn } from "@/lib/agent";
 import { getCaller, unauthorized } from "@/lib/auth";
 import { errorResponse } from "@/lib/jobs";
 import { getAnyModel } from "@/lib/fal";
+import { blockedReason } from "@/lib/safety";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { getPlan } from "@/lib/planServer";
 import { defaultLlm, llmAllowed, modelAllowed } from "@/lib/plans";
@@ -18,6 +19,8 @@ export async function POST(req: Request) {
       .filter((m: ChatTurn) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
       .map((m: ChatTurn) => ({ role: m.role, content: m.content.slice(0, 8000) }));
     if (!history.length || history[history.length - 1].role !== "user") return Response.json({ error: "Send a user message" }, { status: 400 });
+    const blocked = blockedReason(history[history.length - 1].content);
+    if (blocked) return Response.json({ error: blocked }, { status: 400 });
     const { plan } = await getPlan(caller.userId, caller.isAdmin);
     const llm: LlmKey = LLMS.some((l) => l.key === body.llm) ? body.llm : defaultLlm(plan);
     if (!llmAllowed(plan, llm)) {

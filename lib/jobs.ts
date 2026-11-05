@@ -10,6 +10,7 @@ import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit 
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
 import { getPlan } from "./planServer";
 import { modelAllowed, planName } from "./plans";
+import { blockedReason, inputText } from "./safety";
 import { persistMedia } from "./storage";
 
 export type JobView = {
@@ -40,6 +41,8 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   const model = await getAnyModel(modelId);
   if (!model) throw new HttpError(404, `Unknown model: ${modelId}`);
   const input = buildInput(model, values);
+  const blocked = blockedReason(inputText(input));
+  if (blocked) throw new HttpError(400, blocked);
 
   const { plan } = await getPlan(caller.userId, caller.isAdmin);
   if (!modelAllowed(plan, model)) {

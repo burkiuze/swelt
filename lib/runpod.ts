@@ -66,9 +66,10 @@ export function buildInput(model: Model, values: Record<string, unknown>) {
     }
     input[f.name] = cast(f, v);
   }
-  // Pass through extra keys the caller sent explicitly (API users may know more params).
-  for (const [k, v] of Object.entries(values)) {
-    if (!(k in input) && v !== undefined && v !== null && v !== "" && !model.fields.some((f) => f.name === k)) input[k] = v;
+  // Only the model's own inputs are sent, plus generic attachments that providers map themselves.
+  for (const k of ["images", "image"]) {
+    const v = values[k];
+    if (!(k in input) && v !== undefined && v !== null && v !== "") input[k] = v;
   }
   if (input.seed === -1 || input.seed === "-1") delete input.seed;
   return input;
