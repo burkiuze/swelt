@@ -5,6 +5,7 @@ import { BASE_IMAGE_MODEL, BASE_VIDEO_MODEL, sampleInput, sampleNeeds } from "@/
 import { getPreviews } from "@/lib/showcase";
 import { OFFICIAL_PREVIEWS } from "@/lib/officialPreviews";
 import { dbEnabled, listShowcase } from "@/lib/db";
+import { listHiggsfieldModels, resolveSlug } from "@/lib/higgsfield";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,23 @@ export async function GET(req: Request) {
   try {
     const poll = url.searchParams.get("poll");
     if (poll) return Response.json(await pollJob(caller, poll));
+
+    if (url.searchParams.get("higgsfield")) {
+      // Which live Higgsfield model each catalog entry resolves to (no generation, no cost).
+      const out = await Promise.all(
+        MODELS.filter((m) => m.provider === "higgsfield").map(async (m) => {
+          try {
+            const slug = await resolveSlug(m);
+            const item = (await listHiggsfieldModels()).find((x) => x.slug === slug);
+            return { model: m.id, slug, item };
+          } catch (e) {
+            return { model: m.id, error: e instanceof Error ? e.message : String(e) };
+          }
+        }),
+      );
+      const all = await listHiggsfieldModels().catch((e) => String(e));
+      return Response.json({ resolved: out, available: Array.isArray(all) ? all.map((x) => x.slug) : all });
+    }
 
     if (url.searchParams.get("status")) {
       const generated = new Set(dbEnabled() ? (await listShowcase()).map((r) => r.model_id) : []);

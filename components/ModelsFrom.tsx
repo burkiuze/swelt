@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 
 // Providers that actually serve Swelt's models.
-const PROVIDERS = [
+const PROVIDERS: { name: string; logo: string | null; what: string }[] = [
   { name: "RunPod", logo: "/brand/runpod-white.png", what: "image & video models" },
   { name: "OpenRouter", logo: "/brand/openrouter-white.png", what: "agent LLMs" },
+  { name: "Higgsfield", logo: null, what: "Kling 4.0, Genjutsu, Marketing Studio" },
 ];
 
 /** "Models from <provider>" — the provider rotates, one at a time. */
@@ -27,7 +28,7 @@ export function ModelsFrom() {
             style={{ transform: `translateY(${k === i ? 0 : k === (i + PROVIDERS.length - 1) % PROVIDERS.length ? -100 : 100}%)`, opacity: k === i ? 1 : 0 }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.logo} alt="" className="h-5 w-auto" />
+            {p.logo && <img src={p.logo} alt="" className="h-5 w-auto" />}
             <span className="font-semibold text-white">{p.name}</span>
           </span>
         ))}

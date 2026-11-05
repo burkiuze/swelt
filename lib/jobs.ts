@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { Caller } from "./auth";
 import { getModel, type Model } from "./catalog";
 import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
+import { HF_PREFIX, hfMedia, hfStatus, hfSubmit } from "./higgsfield";
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
 import { persistMedia } from "./storage";
 
@@ -38,7 +39,7 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   }
 
   let gen: Generation;
-  const base = { user_id: caller.userId, model_id: model.id, endpoint_id: model.endpoints[0], kind: model.kind, source, status: "IN_QUEUE", input };
+  const base = { user_id: caller.userId, model_id: model.id, endpoint_id: model.endpoints[0] ?? model.provider ?? "runpod", kind: model.kind, source, status: "IN_QUEUE", input };
   if (dbEnabled()) gen = await insertGeneration(base);
   else {
     gen = { ...base, id: randomUUID(), runpod_job_id: null, output: null, media_url: null, cost: 0, error: null, created_at: new Date().toISOString(), completed_at: null } as Generation;
@@ -46,7 +47,7 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   }
 
   try {
-    const { endpoint, job } = await submit(model, input);
+    const { endpoint, job } = model.provider === "higgsfield" ? await hfSubmit(model, input) : await submit(model, input);
     gen = { ...gen, endpoint_id: endpoint, runpod_job_id: job.id, status: job.status || "IN_QUEUE" };
     if (dbEnabled()) await setJob(gen.id, `${endpoint}:${job.id}`, gen.status);
     else memory.set(gen.id, gen);
@@ -67,13 +68,13 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
 
   // runpod_job_id is stored as "<endpoint>:<job id>"
   const [endpoint, jobId] = gen.runpod_job_id.includes(":") ? gen.runpod_job_id.split(/:(.+)/) : [gen.endpoint_id, gen.runpod_job_id];
-  const job = await rpStatus(endpoint, jobId);
+  const job = endpoint.startsWith(HF_PREFIX) ? await hfStatus(jobId) : await rpStatus(endpoint, jobId);
   if (!isFinal(job.status)) {
     gen = { ...gen, status: job.status };
     return view(gen, model);
   }
   if (job.status === "COMPLETED") {
-    let media = extractMedia(job.output);
+    let media = endpoint.startsWith(HF_PREFIX) ? hfMedia(job.output) : extractMedia(job.output);
     media = await Promise.all(media.map((u, i) => persistMedia(u, `${gen!.id}-${i}`, model.kind)));
     const cost = extractCost(job.output) ?? model.price;
     const error = media.length ? null : "Model finished but returned no media";

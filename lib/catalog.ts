@@ -28,7 +28,9 @@ export type Model = {
   category: Category;
   kind: "image" | "video";
   tags: string[];
-  endpoints: string[]; // RunPod public endpoint ID candidates
+  endpoints: string[]; // RunPod public endpoint ID candidates (unused for Higgsfield)
+  provider?: "runpod" | "higgsfield"; // default runpod
+  match?: string[]; // Higgsfield: keywords that identify the model in its live /models list
   fields: Field[];
   price: number; // estimated USD per run, used when RunPod doesn't report cost
   priceLabel: string;
@@ -59,6 +61,74 @@ const aspect = (d = "16:9"): Field => ({ name: "aspect_ratio", label: "Aspect ra
 const audio: Field = { name: "generate_audio", label: "Generate audio", type: "boolean", default: true };
 
 export const MODELS: Model[] = [
+  // ---------------- Higgsfield ----------------
+  {
+    id: "higgsfield/marketing-studio-image",
+    name: "Marketing Studio Image",
+    lab: "higgsfield",
+    description: "Ad-ready product and campaign images from a prompt and up to 14 reference images (product, logo, model, scene).",
+    category: "image-to-image",
+    kind: "image",
+    tags: ["marketing", "product", "ads"],
+    provider: "higgsfield",
+    match: ["marketing", "studio", "image"],
+    endpoints: [],
+    fields: [
+      prompt,
+      { name: "image_references", label: "Reference images (up to 14)", type: "images", max: 14 },
+      { name: "aspect_ratio", label: "Aspect ratio", type: "select", options: ["auto", "1:1", "4:5", "3:4", "2:3", "9:16", "16:9", "3:2", "4:3", "21:9"], default: "1:1" },
+      resolution(["1k", "2k", "4k"], "1k"),
+    ],
+    price: 0.06,
+    priceLabel: "via Higgsfield",
+    isNew: true,
+    gradient: ["#f5d0a9", "#9a3412", "#1c1917"],
+  },
+  {
+    id: "kwaivgi/kling-4.0",
+    name: "Kling 4.0",
+    lab: "kwaivgi",
+    description: "Kling's latest video model: cinematic text-to-video and image-to-video with native sound.",
+    category: "image-to-video",
+    kind: "video",
+    tags: ["cinematic", "audio"],
+    provider: "higgsfield",
+    match: ["kling", "4"],
+    endpoints: [],
+    fields: [
+      prompt,
+      { name: "image_url", label: "Start image (optional)", type: "image" },
+      duration([5, 10], 5),
+      aspect(),
+      { name: "sound", label: "Sound", type: "boolean", default: true },
+    ],
+    price: 0.6,
+    priceLabel: "via Higgsfield",
+    isNew: true,
+    gradient: ["#a7f3d0", "#0f766e", "#042f2e"],
+  },
+  {
+    id: "higgsfield/genjutsu-light",
+    name: "Genjutsu Light",
+    lab: "higgsfield",
+    description: "Swap the character in a video with one reference photo while keeping the original motion, camera and lighting.",
+    category: "video-to-video",
+    kind: "video",
+    tags: ["character swap", "video editing"],
+    provider: "higgsfield",
+    match: ["genjutsu"],
+    endpoints: [],
+    fields: [
+      { name: "video_url", label: "Source video URL", type: "text", required: true },
+      { name: "image_url", label: "Character image", type: "image", required: true },
+      { ...prompt, required: false, label: "Prompt (optional)" },
+    ],
+    price: 0.4,
+    priceLabel: "via Higgsfield",
+    isNew: true,
+    gradient: ["#c4b5fd", "#6d28d9", "#0f0a1f"],
+  },
+
   // ---------------- Image ----------------
   {
     id: "google/nano-banana-2",
