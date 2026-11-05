@@ -62,11 +62,17 @@ const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ");
  * (HIGGSFIELD_SLUG_OVERRIDES='{"higgsfield/kling-4.0":"kling-video/v4/..."}'), else the first
  * live model whose slug + name contain every keyword in `model.match`.
  */
-export async function resolveSlug(model: Model): Promise<string> {
+export async function resolveSlug(model: Model, input: Record<string, unknown> = {}): Promise<string> {
+  const hasImage = ["image_url", "image", "start_image", "images", "image_references"].some((k) => {
+    const v = input[k];
+    return Array.isArray(v) ? v.length > 0 : Boolean(v);
+  });
   try {
     const o = JSON.parse(process.env.HIGGSFIELD_SLUG_OVERRIDES || "{}")[model.id];
     if (typeof o === "string" && o) return o;
   } catch {}
+  if (hasImage && model.hfSlugWithImage) return model.hfSlugWithImage;
+  if (model.hfSlug) return model.hfSlug;
   const words = (model.match ?? []).map(norm);
   const items = await listHiggsfieldModels();
   const hit = items.find((m) => {
@@ -78,7 +84,7 @@ export async function resolveSlug(model: Model): Promise<string> {
 }
 
 export async function hfSubmit(model: Model, input: Record<string, unknown>) {
-  const slug = await resolveSlug(model);
+  const slug = await resolveSlug(model, input);
   const r = await hf(`/${slug.replace(/^\//, "")}`, { method: "POST", body: JSON.stringify(input) });
   const id = r.json?.request_id ?? r.json?.id;
   if (!r.ok || typeof id !== "string") throw new Error(`Higgsfield (${slug}): ${describe(r.json, r.status)}`);

@@ -30,7 +30,9 @@ export type Model = {
   tags: string[];
   endpoints: string[]; // RunPod public endpoint ID candidates (unused for Higgsfield)
   provider?: "runpod" | "higgsfield"; // default runpod
-  match?: string[]; // Higgsfield: keywords that identify the model in its live /models list
+  match?: string[]; // Higgsfield: keywords that identify the model in its live /models list (fallback)
+  hfSlug?: string; // Higgsfield: exact slug
+  hfSlugWithImage?: string; // Higgsfield: slug to use when an input image is given (e.g. image-to-video)
   fields: Field[];
   price: number; // estimated USD per run, used when RunPod doesn't report cost
   priceLabel: string;
@@ -72,6 +74,7 @@ export const MODELS: Model[] = [
     tags: ["marketing", "product", "ads"],
     provider: "higgsfield",
     match: ["marketing", "studio", "image"],
+    hfSlug: "marketing-studio/image",
     endpoints: [],
     fields: [
       prompt,
@@ -89,11 +92,13 @@ export const MODELS: Model[] = [
     name: "Kling 4.0",
     lab: "kwaivgi",
     description: "Kling's latest video model: cinematic text-to-video and image-to-video with native sound.",
-    category: "image-to-video",
+    category: "text-to-video",
     kind: "video",
-    tags: ["cinematic", "audio"],
+    tags: ["cinematic", "audio", "image-to-video"],
     provider: "higgsfield",
-    match: ["kling", "4"],
+    match: ["kling", "v4 0"],
+    hfSlug: "kling-video/v4.0/text-to-video",
+    hfSlugWithImage: "kling-video/v4.0/image-to-video",
     endpoints: [],
     fields: [
       prompt,
@@ -111,12 +116,13 @@ export const MODELS: Model[] = [
     id: "higgsfield/genjutsu-light",
     name: "Genjutsu Light",
     lab: "higgsfield",
-    description: "Swap the character in a video with one reference photo while keeping the original motion, camera and lighting.",
+    description: "Transfer the motion of a source video onto your reference character (first 15 s, source audio kept).",
     category: "video-to-video",
     kind: "video",
     tags: ["character swap", "video editing"],
     provider: "higgsfield",
-    match: ["genjutsu"],
+    match: ["genjutsu", "light", "motion"],
+    hfSlug: "higgsfield/genjutsu-light/motion-transfer/v1.0",
     endpoints: [],
     fields: [
       { name: "video_url", label: "Source video URL", type: "text", required: true },
