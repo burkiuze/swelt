@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { ArrowUp, Clapperboard, Hand, ImageIcon, Mic, Plus, Shuffle, Sparkles } from "lucide-react";
+import { ArrowUp, Clapperboard, Hand, ImageIcon, Loader2, Plus, Shuffle, Sparkles, X } from "lucide-react";
+import { upload } from "@/lib/client";
 import type { Effort, LlmKey } from "@/lib/llm";
 import { MediaPicker } from "./MediaPicker";
 import { ModelPicker } from "./ModelPicker";
@@ -79,11 +80,32 @@ export function PromptBox() {
   const [text, setText] = useState("");
   const [prefs, setPrefs] = useState<AgentPrefs>({ llm: "glm", effort: "medium", approval: true, media: "auto" });
   const [ideas, setIdeas] = useState(() => IDEAS.agent.slice(0, 3));
+  const [files, setFiles] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const current = MODES.find((m) => m.key === mode)!;
+
+  const attach = async (list: FileList | null) => {
+    if (!list?.length) return;
+    setUploading(true);
+    try {
+      for (const f of Array.from(list).slice(0, 4)) {
+        const url = await upload(f);
+        setFiles((x) => [...x, url].slice(0, 4));
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/sign in|401/i.test(msg)) router.push(`/login?next=${encodeURIComponent("/")}`);
+      else alert(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const go = (q = text) => {
     if (!q.trim()) return;
     const p = new URLSearchParams({ q: current.prefix + q, llm: prefs.llm, effort: prefs.effort, approval: prefs.approval ? "1" : "0" });
+    for (const f of files) p.append("att", f);
     if (prefs.media !== "auto") p.set("media", prefs.media);
     if (mode !== "agent") p.set("kind", mode);
     router.push(`/agent?${p}`);
@@ -125,12 +147,49 @@ export function PromptBox() {
           placeholder={current.placeholder}
           className="block w-full resize-none bg-transparent px-4 pt-4 text-[15px] leading-relaxed outline-none placeholder:text-dim"
         />
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-2 px-4 pt-2">
+            {files.map((u) => (
+              <span key={u} className="group relative h-14 w-14 overflow-hidden rounded-md border border-line-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={u} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setFiles((x) => x.filter((y) => y !== u))}
+                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white"
+                  aria-label="Remove image"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-2 px-2.5 pb-2.5 pt-1">
-          <Plus size={16} className="mx-1 shrink-0 text-muted" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              attach(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted transition hover:bg-panel-2 hover:text-white"
+            title="Add images"
+            aria-label="Add images"
+          >
+            {uploading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+          </button>
           <div className="min-w-0 flex-1">
             <AgentControls prefs={prefs} onChange={setPrefs} kind={mode === "agent" ? undefined : mode} />
           </div>
-          <Mic size={16} className="shrink-0 text-muted" />
           <button
             onClick={() => go()}
             disabled={!text.trim()}

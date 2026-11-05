@@ -32,6 +32,7 @@ import { Media } from "./Media";
 import { AgentRail } from "./AgentRail";
 import { deleteChat, getChat, listChats, saveChat, type StoredChat } from "@/lib/chatStore";
 import { MediaPicker } from "./MediaPicker";
+import { loadFalModels } from "./falModels";
 import { Markdown } from "./Markdown";
 import { ModelPicker } from "./ModelPicker";
 
@@ -265,8 +266,9 @@ export function AgentChat() {
       saveChat({ id: chatId, title: (firstUser?.content || "Image chat").slice(0, 80), updatedAt: Date.now(), msgs: slimMsgs, jobs: slimJobs });
       // Keep the chat in the URL (and drop ?q= so a reload doesn't send the prompt again).
       const url = new URL(window.location.href);
-      if (url.searchParams.get("chat") !== chatId || url.searchParams.has("q")) {
+      if (url.searchParams.get("chat") !== chatId || url.searchParams.has("q") || url.searchParams.has("att")) {
         url.searchParams.delete("q");
+        url.searchParams.delete("att");
         url.searchParams.set("chat", chatId);
         window.history.replaceState(null, "", url.toString());
       }
@@ -305,12 +307,15 @@ export function AgentChat() {
       setBusy(true);
       if (direct && mediaKind) {
         const modelId = media !== "auto" ? media : DIRECT_DEFAULT[mediaKind];
-        const model = getModel(modelId);
+        const own = getModel(modelId);
+        const falModel = !own && modelId.startsWith("fal/") ? (await loadFalModels()).find((m) => m.id === modelId) : undefined;
+        const model = own ?? (falModel ? { ...falModel, fields: [] as { name: string }[] } : undefined);
         try {
           if (!model) throw new Error("Pick a model first.");
           const input: Record<string, unknown> = { prompt: content };
           const has = (n: string) => model.fields.some((f) => f.name === n);
-          if (files.length) {
+          if (files.length && falModel) input.images = files; // the server maps these onto the fal model's own fields
+          else if (files.length) {
             if (has("images")) input.images = files;
             else if (has("image")) input.image = files[0];
             else if (has("image_url")) input.image_url = files[0];
@@ -378,7 +383,7 @@ export function AgentChat() {
     const q = params.get("q");
     if (q && !started.current) {
       started.current = true;
-      send(q);
+      send(q, params.getAll("att").filter((u) => /^(https:|data:image\/)/.test(u)).slice(0, 4));
     }
   }, [params, send]);
 

@@ -7,6 +7,7 @@ const PROVIDERS: { name: string; logo: string | null; what: string }[] = [
   { name: "RunPod", logo: "/brand/runpod-white.png", what: "image & video models" },
   { name: "OpenRouter", logo: "/brand/openrouter-white.png", what: "agent LLMs" },
   { name: "Higgsfield", logo: "/brand/higgsfield-white.png", what: "Kling 4.0, Genjutsu, Marketing Studio" },
+  { name: "fal", logo: "/brand/fal-white.png", what: "1,000+ image & video models" },
 ];
 
 /** "Models from <provider>" — the provider rotates, one at a time. */

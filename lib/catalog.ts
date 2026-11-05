@@ -29,7 +29,11 @@ export type Model = {
   kind: "image" | "video";
   tags: string[];
   endpoints: string[]; // RunPod public endpoint ID candidates (unused for Higgsfield)
-  provider?: "runpod" | "higgsfield" | "openrouter"; // default runpod
+  provider?: "runpod" | "higgsfield" | "openrouter" | "fal"; // default runpod
+  falEndpoint?: string; // fal: endpoint id, e.g. "fal-ai/flux/dev"
+  falUnit?: string; // fal: billing unit (image, second, megapixel, video, ...)
+  falUnitPrice?: number; // fal: our price per unit (margin included)
+  thumbnail?: string; // fal: preview image
   orSlug?: string; // OpenRouter: best-known model slug
   orName?: string; // OpenRouter: model name used to find the live slug if orSlug is unknown
   perSecond?: number; // OpenRouter video: USD per second of output

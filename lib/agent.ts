@@ -1,6 +1,6 @@
 import "server-only";
 import type { Caller } from "./auth";
-import { catalogForAgent, getModel } from "./catalog";
+import { catalogForAgent, getModel, type Model } from "./catalog";
 import { runAndWait, type JobView } from "./jobs";
 import { llmLabel, type Effort, type LlmKey } from "./llm";
 import { modelAllowed, type PlanKey } from "./plans";
@@ -43,8 +43,7 @@ const TOOLS = [
   },
 ];
 
-function systemPrompt(approval: boolean, media: string | undefined, plan: PlanKey) {
-  const picked = media ? getModel(media) : undefined;
+function systemPrompt(approval: boolean, picked: Model | undefined, plan: PlanKey) {
   return `You are the Vlipa Agent, a creative director inside Vlipa — a generative media platform (image + video models from several providers).
 The user describes what they want; you pick the right model(s), write strong, detailed prompts, and call generate_media.
 Guidelines:
@@ -56,7 +55,7 @@ Guidelines:
 - Format replies in Markdown (short paragraphs, **bold** for key points, bullet lists for options).
 - If the user just chats (e.g. says hello), answer briefly without calling tools.
 - End every final reply with one line "NEXT: <a short follow-up request the user could send next>" in the user's language.
-${picked ? `- THE USER PICKED THE MEDIA MODEL ${picked.id} (${picked.name}). Use only this model for every generate_media call.\n` : ""}${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
+${picked ? `- THE USER PICKED THE MEDIA MODEL ${picked.id} (${picked.name}). Use only this model for every generate_media call. Its inputs: ${picked.fields.map((f) => `${f.name}${f.required ? "*" : ""}:${f.type}${f.options ? `[${f.options.join("|")}]` : ""}`).join(", ")}\n` : ""}${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
 Model catalog (inputs marked * are required):
 ${catalogForAgent((m) => modelAllowed(plan, m))}`;
 }
@@ -85,10 +84,11 @@ async function chat(model: string, messages: Msg[], effort: Effort) {
 export async function runAgent(
   caller: Caller,
   history: ChatTurn[],
-  opts: { llm: LlmKey; effort: Effort; approval: boolean; media?: string; plan?: PlanKey },
+  opts: { llm: LlmKey; effort: Effort; approval: boolean; media?: string; mediaModel?: Model; plan?: PlanKey },
 ): Promise<AgentResult> {
   const model = llmSlug(opts.llm);
-  const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval, opts.media, opts.plan ?? "free") }, ...history.slice(-20)];
+  const findModel = (id: string) => (opts.mediaModel && id === opts.mediaModel.id ? opts.mediaModel : getModel(id));
+  const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval, opts.mediaModel, opts.plan ?? "free") }, ...history.slice(-20)];
   const jobs: JobView[] = [];
   const proposals: Proposal[] = [];
   const steps: Step[] = [];
@@ -116,8 +116,8 @@ export async function runAgent(
         } catch {
           return { id: c.id, content: JSON.stringify({ error: "Invalid JSON arguments" }) };
         }
-        if (opts.media && getModel(opts.media)) args.model_id = opts.media;
-        if (c.function.name !== "generate_media" || !getModel(args.model_id)) {
+        if (opts.mediaModel) args.model_id = opts.mediaModel.id;
+        if (c.function.name !== "generate_media" || !findModel(args.model_id)) {
           return { id: c.id, content: JSON.stringify({ error: `Unknown tool or model: ${args.model_id}` }) };
         }
         if (opts.approval) {
@@ -129,14 +129,14 @@ export async function runAgent(
         try {
           const v = await runAndWait(caller, args.model_id, args.input || {}, Math.min(remaining, 25_000));
           jobs.push(v);
-          steps.push({ label: `Calling ${getModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, status: v.status, media: v.media, error: v.error } });
+          steps.push({ label: `Calling ${findModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, status: v.status, media: v.media, error: v.error } });
           return {
             id: c.id,
             content: JSON.stringify({ request_id: v.request_id, status: v.status, media: v.media, error: v.error, note: v.status === "COMPLETED" || v.status === "FAILED" ? undefined : "Still running; the UI will keep polling it." }),
           };
         } catch (e) {
           const error = e instanceof Error ? e.message : String(e);
-          steps.push({ label: `Calling ${getModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, error } });
+          steps.push({ label: `Calling ${findModel(args.model_id)?.name ?? args.model_id}`, ms: Date.now() - t1, kind: "tool", detail: { input: args.input, error } });
           return { id: c.id, content: JSON.stringify({ error }) };
         }
       }),

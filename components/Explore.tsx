@@ -34,7 +34,11 @@ function Section({ title, subtitle, models, previews }: { title: string; subtitl
   );
 }
 
-export function Explore({ previews = {} }: { previews?: Record<string, Preview> }) {
+const MAX_RESULTS = 120;
+
+export function Explore({ previews = {}, extra = [] }: { previews?: Record<string, Preview>; extra?: Model[] }) {
+  const ALL = useMemo(() => [...MODELS, ...extra], [extra]);
+  const ALL_LABS = useMemo(() => [...LABS, ...(extra.length ? ["fal"] : [])], [extra.length]);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("all");
   const [lab, setLab] = useState<string | null>(null);
@@ -45,13 +49,13 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return MODELS.filter(
+    return ALL.filter(
       (m) =>
         (tab === "all" || m.kind === tab || m.category === tab) &&
         (!lab || m.lab === lab) &&
         (!s || `${m.id} ${m.name} ${m.description} ${m.tags.join(" ")} ${m.category}`.toLowerCase().includes(s)),
     );
-  }, [q, tab, lab]);
+  }, [q, tab, lab, ALL]);
 
   const browsing = !q && tab === "all" && !lab;
 
@@ -60,7 +64,7 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
       <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">Browse by lab</h2>
       <p className="mt-1 text-sm text-muted">The teams behind the models you can run here.</p>
       <div className="scrollbar-none mt-6 flex gap-3 overflow-x-auto">
-        {LABS.map((l) => (
+        {ALL_LABS.map((l) => (
           <button
             key={l}
             onClick={() => {
@@ -72,7 +76,7 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={LAB_LOGOS[l] ?? ""} alt={l} className={`h-9 w-9 object-contain ${LAB_LOGOS[l] ? "" : "hidden"}`} />
             <span className="mt-1.5 text-[13px] font-semibold">{l}</span>
-            <span className="text-[11px] text-dim">{MODELS.filter((m) => m.lab === l).length} models</span>
+            <span className="text-[11px] text-dim">{ALL.filter((m) => m.lab === l).length} models</span>
           </button>
         ))}
       </div>
@@ -110,10 +114,36 @@ export function Explore({ previews = {} }: { previews?: Record<string, Preview> 
           <Section title="Video" subtitle="Make clips from text or images, or edit footage." previews={previews} models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
           <Section title="Image editing" subtitle="Change an image with a reference and a sentence." previews={previews} models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
           <Section title="Text to image" subtitle="From quick sketches to polished renders." previews={previews} models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
+          {extra.length > 0 && (
+            <section>
+              <Section
+                title="fal · Ultra"
+                subtitle={`${extra.length} more image and video models from fal, included in the Ultra plan.`}
+                previews={previews}
+                models={extra.slice(0, 9)}
+              />
+              <button
+                onClick={() => {
+                  setLab("fal");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="btn mt-4"
+              >
+                See all {extra.length} fal models <ChevronRight size={14} />
+              </button>
+            </section>
+          )}
           {labs}
         </>
       ) : filtered.length ? (
-        <Section previews={previews} title={`${filtered.length} model${filtered.length === 1 ? "" : "s"}`} models={filtered} />
+        <>
+          <Section
+            previews={previews}
+            title={`${filtered.length} model${filtered.length === 1 ? "" : "s"}`}
+            subtitle={filtered.length > MAX_RESULTS ? `Showing the first ${MAX_RESULTS}. Search to narrow it down.` : undefined}
+            models={filtered.slice(0, MAX_RESULTS)}
+          />
+        </>
       ) : (
         <div className="card p-10 text-center text-muted">No models match your search.</div>
       )}

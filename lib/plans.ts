@@ -20,7 +20,7 @@ export const PLANS: {
 }[] = [
   { key: "premium", name: "Premium", price: 5, was: 10, credits: 5, blurb: "Every OpenRouter image and video model.", ultraLlms: false, allModels: false },
   { key: "pro", name: "Pro", price: 20, was: 40, credits: 28, bonus: 8, blurb: "Adds Kling 4.0, Genjutsu and Marketing Studio.", ultraLlms: false, allModels: true, badge: "Most popular" },
-  { key: "ultra", name: "Ultra", price: 50, was: 100, credits: 65, bonus: 15, blurb: "The most credits plus the top agent models.", ultraLlms: true, allModels: true, badge: "Best value" },
+  { key: "ultra", name: "Ultra", price: 50, was: 100, credits: 65, bonus: 15, blurb: "Top agent models plus every fal model.", ultraLlms: true, allModels: true, badge: "Best value" },
 ];
 
 const RANK: Record<PlanKey, number> = { free: 0, premium: 1, pro: 2, ultra: 3 };
@@ -40,7 +40,8 @@ export function llmAllowed(plan: PlanKey, key: LlmKey) {
 
 export const defaultLlm = (plan: PlanKey): LlmKey => (plan === "ultra" ? "opus" : "glm");
 
-/** Free and Premium use OpenRouter models only; Pro and Ultra get every provider. */
+/** Free and Premium: OpenRouter only. Pro: + Higgsfield and RunPod. Ultra: everything, including fal. */
 export function modelAllowed(plan: PlanKey, model: { provider?: string }) {
+  if (model.provider === "fal") return plan === "ultra";
   return plan === "pro" || plan === "ultra" || model.provider === "openrouter";
 }

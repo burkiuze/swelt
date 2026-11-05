@@ -17,4 +17,5 @@ export const LAB_LOGOS: Record<string, string> = {
   "x-ai": "/brand/labs/x-ai.svg",
   heygen: "/brand/labs/heygen.svg",
   tbc: "/brand/labs/tbc.svg",
+  fal: "/brand/labs/fal.png",
 };

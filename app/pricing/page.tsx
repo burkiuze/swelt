@@ -28,6 +28,7 @@ const FAQ = [
   },
   { q: "Do unused credits expire?", a: `No. Credits stay on your account. The plan itself (and its agent models) is active for ${PLAN_DAYS} days after you redeem the code.` },
   { q: "Which agent models come with each plan?", a: "Every plan includes GLM 5.3 Flash and DeepSeek V4.1 Flash. Ultra adds Opus 5.5 and GPT-6.1 Sol, our strongest planners." },
+  { q: "What do I get with fal models?", a: "Ultra unlocks every image and video model on fal — over a thousand, from FLUX and Recraft to Kling, Veo and Wan. They are charged per image or per second at the price shown on each model." },
   { q: "Which media models come with Premium?", a: "Premium includes every OpenRouter image and video model (Qwen, FLUX 3, Seedream 5.0, Grok Imagine, HeyGen and more). Pro and Ultra add Kling 4.0, Genjutsu Light, Marketing Studio and the rest of the catalog." },
   { q: "Is there an unlimited plan?", a: "No. Every generation uses credits, so you always see exactly what a run costs before it starts." },
   { q: "Can I buy more credits or upgrade later?", a: "Yes. Redeem another code at any time. Credits stack, and the higher plan wins while it is active." },
@@ -120,6 +121,7 @@ export default function Page() {
                         ? `All ${MODELS.length} image & video models`
                         : `${MODELS.filter((m) => modelAllowed(p.key, m)).length} OpenRouter image & video models`,
                       ...(p.allModels ? ["Kling 4.0, Genjutsu Light & Marketing Studio"] : []),
+                      ...(p.key === "ultra" ? ["Every fal image & video model (1,000+)"] : []),
                       "Choose the exact media model for the agent",
                       "Credits never expire",
                       "Full-quality downloads, no watermark",

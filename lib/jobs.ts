@@ -2,7 +2,8 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import type { Caller } from "./auth";
-import { getModel, markup, type Model } from "./catalog";
+import { markup, type Model } from "./catalog";
+import { FAL_PREFIX, falCost, falMedia, falStatus, falSubmit, getAnyModel } from "./fal";
 import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
 import { HF_PREFIX, hfMedia, hfStatus, hfSubmit } from "./higgsfield";
 import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit } from "./openrouter-media";
@@ -36,7 +37,7 @@ export class HttpError extends Error {
 }
 
 export async function startJob(caller: Caller, modelId: string, values: Record<string, unknown>, source: string): Promise<JobView> {
-  const model = getModel(modelId);
+  const model = await getAnyModel(modelId);
   if (!model) throw new HttpError(404, `Unknown model: ${modelId}`);
   const input = buildInput(model, values);
 
@@ -89,7 +90,13 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
       return view(gen, model);
     }
     const { endpoint, job } =
-      model.provider === "higgsfield" ? await hfSubmit(model, input) : model.provider === "openrouter" ? await orVideoSubmit(model, input) : await submit(model, input);
+      model.provider === "higgsfield"
+        ? await hfSubmit(model, input)
+        : model.provider === "openrouter"
+          ? await orVideoSubmit(model, input)
+          : model.provider === "fal"
+            ? await falSubmit(model, input)
+            : await submit(model, input);
     gen = { ...gen, endpoint_id: endpoint, runpod_job_id: job.id, status: job.status || "IN_QUEUE" };
     if (dbEnabled()) await setJob(gen.id, `${endpoint}:${job.id}`, gen.status);
     else memory.set(gen.id, gen);
@@ -104,7 +111,7 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
 export async function pollJob(caller: Caller, id: string): Promise<JobView> {
   let gen = dbEnabled() ? await getGeneration(caller.userId, id) : memory.get(id) ?? null;
   if (!gen || gen.user_id !== caller.userId) throw new HttpError(404, "Request not found");
-  const model = getModel(gen.model_id);
+  const model = await getAnyModel(gen.model_id);
   if (!model) throw new HttpError(404, "Model no longer exists");
   if (isFinal(gen.status) || !gen.runpod_job_id) return view(gen, model);
 
@@ -119,7 +126,14 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
     return view(gen, model);
   }
   const isOr = endpoint.startsWith(OR_PREFIX);
-  const job = endpoint.startsWith(HF_PREFIX) ? await hfStatus(jobId) : isOr ? await orVideoStatus(jobId) : await rpStatus(endpoint, jobId);
+  const isFal = endpoint.startsWith(FAL_PREFIX);
+  const job = endpoint.startsWith(HF_PREFIX)
+    ? await hfStatus(jobId)
+    : isOr
+      ? await orVideoStatus(jobId)
+      : isFal
+        ? await falStatus(endpoint.slice(FAL_PREFIX.length), jobId)
+        : await rpStatus(endpoint, jobId);
   if (!isFinal(job.status)) {
     gen = { ...gen, status: job.status };
     return view(gen, model);
@@ -128,14 +142,15 @@ export async function pollJob(caller: Caller, id: string): Promise<JobView> {
     let media: string[];
     if (isOr) media = await orVideoMedia(jobId, job.output, gen.id);
     else {
-      media = endpoint.startsWith(HF_PREFIX) ? hfMedia(job.output) : extractMedia(job.output);
+      media = endpoint.startsWith(HF_PREFIX) ? hfMedia(job.output) : isFal ? falMedia(job.output) : extractMedia(job.output);
       media = await Promise.all(media.map((u, i) => persistMedia(u, `${gen!.id}-${i}`, model.kind)));
     }
     const seconds = Number(gen.input?.duration) || 5;
     const reported = isOr ? orCost(job.output) : extractCost(job.output);
     // Video prices are per second, so apply the margin to the per-second cost.
-    const cost =
-      reported != null
+    const cost = isFal
+      ? falCost(model, (gen.input ?? {}) as Record<string, unknown>, media.length)
+      : reported != null
         ? model.perSecond
           ? markup(reported / seconds) * seconds
           : markup(reported)

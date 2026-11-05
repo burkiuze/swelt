@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Clapperboard, ImageIcon, Search, Sparkles } from "lucide-react";
 import { MODELS } from "@/lib/catalog";
+import { useFalModels } from "./falModels";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import { LAB_LOGOS } from "@/lib/labs";
@@ -38,19 +39,26 @@ export function MediaPicker({
   }, [open]);
 
   const plan = usePlan();
-  const list = useMemo(() => MODELS.filter((m) => !kind || m.kind === kind), [kind]);
-  const allowed = (m: (typeof MODELS)[number]) => plan === null || modelAllowed(plan, m);
+  const fal = useFalModels();
+  type Pickable = { id: string; name: string; lab: string; kind: "image" | "video"; category: string; priceLabel: string; provider?: string };
+  const list = useMemo<Pickable[]>(() => [...MODELS, ...fal].filter((m) => !kind || m.kind === kind), [kind, fal]);
+  const allowed = (m: Pickable) => plan === null || modelAllowed(plan, m);
   // Switching tabs (image ↔ video) resets a choice that no longer fits.
   useEffect(() => {
+    if (value.startsWith("fal/") && !fal.length) return; // fal list still loading
     if (value !== "auto" && !list.some((m) => m.id === value && (plan === null || modelAllowed(plan, m)))) onChange("auto");
-  }, [list, value, onChange, plan]);
+  }, [list, value, onChange, plan, fal.length]);
 
   const s = q.trim().toLowerCase();
   const shown = list.filter((m) => !s || `${m.name} ${m.lab} ${m.category}`.toLowerCase().includes(s));
   const current = list.find((m) => m.id === value);
+  const own = shown.filter((m) => m.provider !== "fal");
+  const falShown = shown.filter((m) => m.provider === "fal");
   const groups: { title: string; items: typeof shown }[] = [
-    { title: "Image", items: shown.filter((m) => m.kind === "image") },
-    { title: "Video", items: shown.filter((m) => m.kind === "video") },
+    { title: "Image", items: own.filter((m) => m.kind === "image") },
+    { title: "Video", items: own.filter((m) => m.kind === "video") },
+    { title: "fal · Image (Ultra)", items: falShown.filter((m) => m.kind === "image") },
+    { title: "fal · Video (Ultra)", items: falShown.filter((m) => m.kind === "video") },
   ].filter((g) => g.items.length);
 
   return (
@@ -104,7 +112,7 @@ export function MediaPicker({
             </button>
             {groups.map((g) => (
               <div key={g.title}>
-                {!kind && <div className="px-2.5 pb-1 pt-2 text-xs font-medium text-dim">{g.title}</div>}
+                {(!kind || g.title.startsWith("fal")) && <div className="px-2.5 pb-1 pt-2 text-xs font-medium text-dim">{g.title}</div>}
                 {g.items.map((m) =>
                   !allowed(m) ? (
                     <Link
@@ -120,8 +128,10 @@ export function MediaPicker({
                         <span className="block truncate font-medium">{m.name}</span>
                         <span className="block truncate text-xs text-dim">{m.lab}</span>
                       </span>
-                      <span className="flex items-center gap-1 rounded bg-[#3b82f6]/15 px-1.5 py-0.5 text-[11px] font-medium text-[#7dd3fc]">
-                        <Lock size={10} /> Pro
+                      <span
+                        className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium ${m.provider === "fal" ? "bg-[#f59e0b]/15 text-[#fbbf24]" : "bg-[#3b82f6]/15 text-[#7dd3fc]"}`}
+                      >
+                        <Lock size={10} /> {m.provider === "fal" ? "Ultra" : "Pro"}
                       </span>
                     </Link>
                   ) : (
