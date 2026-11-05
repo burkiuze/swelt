@@ -78,6 +78,7 @@ export default function Page() {
                       <Sparkles size={11} />
                     </span>
                     <span className={t.accent}>${p.credits} in credits</span>
+                    {p.bonus ? <span className="rounded-full bg-[#4ade80]/15 px-2 py-0.5 text-xs font-semibold text-[#4ade80]">+${p.bonus} bonus</span> : null}
                   </div>
                   <div className="ml-2.5 mt-2 space-y-2 border-l border-line-2 pl-5 text-sm">
                     <div>
