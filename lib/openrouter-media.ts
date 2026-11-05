@@ -11,6 +11,16 @@ import { putBytes, storageEnabled } from "./storage";
 //   GET  /api/v1/images/models, /api/v1/videos/models → live model lists (used to resolve slugs)
 
 const BASE = "https://openrouter.ai/api/v1";
+
+/**
+ * OpenRouter provider routing: send each request to the cheapest provider serving the model
+ * ("price"; set OPENROUTER_PROVIDER_SORT=throughput or latency to favour speed), falling back
+ * to the next provider if one fails.
+ */
+export function providerPrefs() {
+  const sort = process.env.OPENROUTER_PROVIDER_SORT || "price";
+  return { sort, allow_fallbacks: true };
+}
 export const OR_PREFIX = "openrouter/";
 
 function headers(extra: Record<string, string> = {}) {
@@ -83,7 +93,7 @@ const asUrls = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : []).f
 export async function orImage(model: Model, input: Record<string, unknown>, name: string) {
   const slug = await resolveOrSlug(model);
   const refs = asUrls(input.images ?? input.image);
-  const body: Record<string, unknown> = { model: slug, prompt: input.prompt };
+  const body: Record<string, unknown> = { model: slug, prompt: input.prompt, provider: providerPrefs() };
   if (input.aspect_ratio) body.aspect_ratio = input.aspect_ratio;
   if (input.resolution) body.resolution = input.resolution;
   if (refs.length) body.input_references = refs.map((url) => ({ type: "image_url", image_url: { url } }));
@@ -105,7 +115,7 @@ export async function orImage(model: Model, input: Record<string, unknown>, name
 
 export async function orVideoSubmit(model: Model, input: Record<string, unknown>) {
   const slug = await resolveOrSlug(model);
-  const body: Record<string, unknown> = { model: slug, prompt: input.prompt };
+  const body: Record<string, unknown> = { model: slug, prompt: input.prompt, provider: providerPrefs() };
   if (input.duration) body.duration = Number(input.duration);
   if (input.aspect_ratio) body.aspect_ratio = input.aspect_ratio;
   if (input.resolution) body.resolution = input.resolution;

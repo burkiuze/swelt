@@ -2,6 +2,7 @@ import "server-only";
 import type { Caller } from "./auth";
 import { catalogForAgent, getModel, type Model } from "./catalog";
 import { runAndWait, type JobView } from "./jobs";
+import { providerPrefs } from "./openrouter-media";
 import { llmLabel, type Effort, type LlmKey } from "./llm";
 import { modelAllowed, type PlanKey } from "./plans";
 import { looksLikeJailbreak, SAFETY_RULES, scrubSecrets } from "./safety";
@@ -73,7 +74,7 @@ async function chat(model: string, messages: Msg[], effort: Effort) {
       "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://vlipa.dev",
       "X-Title": "Vlipa",
     },
-    body: JSON.stringify({ model, messages, tools: TOOLS, tool_choice: "auto", reasoning: { effort }, max_tokens: 4000 }),
+    body: JSON.stringify({ model, messages, tools: TOOLS, tool_choice: "auto", reasoning: { effort }, max_tokens: 4000, provider: providerPrefs() }),
     signal: AbortSignal.timeout(120_000),
   });
   const json = await res.json().catch(() => null);
@@ -175,7 +176,7 @@ export async function runAgent(
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Vlipa" },
-      body: JSON.stringify({ model, messages, max_tokens: 800, tools: TOOLS, tool_choice: "none" }),
+      body: JSON.stringify({ model, messages, max_tokens: 800, tools: TOOLS, tool_choice: "none", provider: providerPrefs() }),
       signal: AbortSignal.timeout(60_000),
     });
     const json = await res.json();
