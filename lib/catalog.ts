@@ -728,8 +728,8 @@ export function categoryLabel(c: Category) {
 }
 
 // Compact listing for the agent's system prompt.
-export function catalogForAgent() {
-  return MODELS.map((m) => {
+export function catalogForAgent(include: (m: Model) => boolean = () => true) {
+  return MODELS.filter(include).map((m) => {
     const fields = m.fields
       .map((f) => `${f.name}${f.required ? "*" : ""}:${f.type}${f.options ? `[${f.options.join("|")}]` : ""}`)
       .join(", ");

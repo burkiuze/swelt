@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Clapperboard, ImageIcon, Search, Sparkles } from "lucide-react";
 import { MODELS } from "@/lib/catalog";
+import Link from "next/link";
+import { Lock } from "lucide-react";
 import { LAB_LOGOS } from "@/lib/labs";
+import { modelAllowed } from "@/lib/plans";
+import { usePlan } from "./usePlan";
 
 /** Pick the media model the agent must use: "auto" or a model id, limited to `kind` when given. */
 export function MediaPicker({
@@ -33,11 +37,13 @@ export function MediaPicker({
     };
   }, [open]);
 
+  const plan = usePlan();
   const list = useMemo(() => MODELS.filter((m) => !kind || m.kind === kind), [kind]);
+  const allowed = (m: (typeof MODELS)[number]) => plan === null || modelAllowed(plan, m);
   // Switching tabs (image ↔ video) resets a choice that no longer fits.
   useEffect(() => {
-    if (value !== "auto" && !list.some((m) => m.id === value)) onChange("auto");
-  }, [list, value, onChange]);
+    if (value !== "auto" && !list.some((m) => m.id === value && (plan === null || modelAllowed(plan, m)))) onChange("auto");
+  }, [list, value, onChange, plan]);
 
   const s = q.trim().toLowerCase();
   const shown = list.filter((m) => !s || `${m.name} ${m.lab} ${m.category}`.toLowerCase().includes(s));
@@ -99,7 +105,26 @@ export function MediaPicker({
             {groups.map((g) => (
               <div key={g.title}>
                 {!kind && <div className="px-2.5 pb-1 pt-2 text-xs font-medium text-dim">{g.title}</div>}
-                {g.items.map((m) => (
+                {g.items.map((m) =>
+                  !allowed(m) ? (
+                    <Link
+                      key={m.id}
+                      href="/pricing"
+                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left opacity-55 hover:bg-[#2a2a2a] hover:opacity-100"
+                      title="Included in Pro and Ultra"
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded bg-panel-2">
+                        <Logo lab={m.lab} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium">{m.name}</span>
+                        <span className="block truncate text-xs text-dim">{m.lab}</span>
+                      </span>
+                      <span className="flex items-center gap-1 rounded bg-[#3b82f6]/15 px-1.5 py-0.5 text-[11px] font-medium text-[#7dd3fc]">
+                        <Lock size={10} /> Pro
+                      </span>
+                    </Link>
+                  ) : (
                   <button
                     key={m.id}
                     type="button"
@@ -120,7 +145,8 @@ export function MediaPicker({
                     </span>
                     <Check size={15} className={value === m.id ? "text-white" : "invisible"} />
                   </button>
-                ))}
+                  ),
+                )}
               </div>
             ))}
             {!groups.length && <div className="p-4 text-center text-xs text-dim">No models match.</div>}

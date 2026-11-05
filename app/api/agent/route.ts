@@ -4,7 +4,7 @@ import { errorResponse } from "@/lib/jobs";
 import { getModel } from "@/lib/catalog";
 import { EFFORTS, LLMS, type Effort, type LlmKey } from "@/lib/llm";
 import { getPlan } from "@/lib/planServer";
-import { defaultLlm, llmAllowed } from "@/lib/plans";
+import { defaultLlm, llmAllowed, modelAllowed } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -24,8 +24,12 @@ export async function POST(req: Request) {
       return Response.json({ error: "Opus 5.5 and GPT-6.1 Sol are part of the Ultra plan. Switch to GLM 5.3 Flash or DeepSeek V4.1 Flash, or upgrade on the Pricing page." }, { status: 403 });
     }
     const effort: Effort = EFFORTS.includes(body.effort) ? body.effort : "medium";
-    const media = typeof body.media === "string" && getModel(body.media) ? body.media : undefined;
-    return Response.json(await runAgent(caller, history, { llm, effort, approval: Boolean(body.approval), media }));
+    const picked = typeof body.media === "string" ? getModel(body.media) : undefined;
+    if (picked && !modelAllowed(plan, picked)) {
+      return Response.json({ error: `${picked.name} is included in the Pro and Ultra plans. Pick an OpenRouter model or upgrade on the Pricing page.` }, { status: 403 });
+    }
+    const media = picked?.id;
+    return Response.json(await runAgent(caller, history, { llm, effort, approval: Boolean(body.approval), media, plan }));
   } catch (e) {
     return errorResponse(e);
   }

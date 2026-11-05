@@ -1,9 +1,9 @@
 // Shared (client + server) plan definitions. Plans are sold as single-use codes
 // (VLIPA-<PLAN>-XXXX-XXXX-XXXX); redeeming one adds its credits and unlocks the
-// plan's agent models for PLAN_DAYS days.
+// plan for PLAN_DAYS days.
 import { LLMS, type LlmKey } from "./llm";
 
-export type PlanKey = "free" | "starter" | "pro" | "ultra";
+export type PlanKey = "free" | "premium" | "pro" | "ultra";
 export const PLAN_DAYS = 30;
 
 export const PLANS: {
@@ -14,20 +14,22 @@ export const PLANS: {
   credits: number;
   blurb: string;
   ultraLlms: boolean;
+  allModels: boolean; // false = OpenRouter models only
   badge?: string;
 }[] = [
-  { key: "starter", name: "Starter", price: 5, was: 10, credits: 5, blurb: "Try every model and see what you like.", ultraLlms: false },
-  { key: "pro", name: "Pro", price: 20, was: 40, credits: 20, blurb: "For regular creators who post every week.", ultraLlms: false, badge: "Most popular" },
-  { key: "ultra", name: "Ultra", price: 50, was: 100, credits: 50, blurb: "The most credits plus the top agent models.", ultraLlms: true, badge: "Best value" },
+  { key: "premium", name: "Premium", price: 5, was: 10, credits: 5, blurb: "Every OpenRouter image and video model.", ultraLlms: false, allModels: false },
+  { key: "pro", name: "Pro", price: 20, was: 40, credits: 20, blurb: "Adds Kling 4.0, Genjutsu and Marketing Studio.", ultraLlms: false, allModels: true, badge: "Most popular" },
+  { key: "ultra", name: "Ultra", price: 50, was: 100, credits: 50, blurb: "The most credits plus the top agent models.", ultraLlms: true, allModels: true, badge: "Best value" },
 ];
 
-const RANK: Record<PlanKey, number> = { free: 0, starter: 1, pro: 2, ultra: 3 };
+const RANK: Record<PlanKey, number> = { free: 0, premium: 1, pro: 2, ultra: 3 };
 export const planRank = (p: PlanKey) => RANK[p];
 export const planName = (p: PlanKey) => (p === "free" ? "Free" : PLANS.find((x) => x.key === p)!.name);
 
 export function planOfCode(code: string): PlanKey | null {
-  const m = code.toUpperCase().match(/^VLIPA-(STARTER|PRO|ULTRA)-/);
-  return m ? (m[1].toLowerCase() as PlanKey) : null;
+  const m = code.toUpperCase().match(/^VLIPA-(PREMIUM|STARTER|PRO|ULTRA)-/);
+  if (!m) return null;
+  return m[1] === "STARTER" ? "premium" : (m[1].toLowerCase() as PlanKey);
 }
 
 export function llmAllowed(plan: PlanKey, key: LlmKey) {
@@ -36,3 +38,8 @@ export function llmAllowed(plan: PlanKey, key: LlmKey) {
 }
 
 export const defaultLlm = (plan: PlanKey): LlmKey => (plan === "ultra" ? "opus" : "glm");
+
+/** Free and Premium use OpenRouter models only; Pro and Ultra get every provider. */
+export function modelAllowed(plan: PlanKey, model: { provider?: string }) {
+  return plan === "pro" || plan === "ultra" || model.provider === "openrouter";
+}

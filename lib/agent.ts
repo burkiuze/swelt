@@ -3,6 +3,7 @@ import type { Caller } from "./auth";
 import { catalogForAgent, getModel } from "./catalog";
 import { runAndWait, type JobView } from "./jobs";
 import { llmLabel, type Effort, type LlmKey } from "./llm";
+import { modelAllowed, type PlanKey } from "./plans";
 
 export function llmSlug(key: LlmKey) {
   if (key === "sol") return process.env.OPENROUTER_MODEL_SOL || "openai/gpt-6.1-sol";
@@ -42,7 +43,7 @@ const TOOLS = [
   },
 ];
 
-function systemPrompt(approval: boolean, media?: string) {
+function systemPrompt(approval: boolean, media: string | undefined, plan: PlanKey) {
   const picked = media ? getModel(media) : undefined;
   return `You are the Vlipa Agent, a creative director inside Vlipa — a generative media platform (image + video models from several providers).
 The user describes what they want; you pick the right model(s), write strong, detailed prompts, and call generate_media.
@@ -56,7 +57,7 @@ Guidelines:
 - End every final reply with one line "NEXT: <a short follow-up request the user could send next>" in the user's language.
 ${picked ? `- THE USER PICKED THE MEDIA MODEL ${picked.id} (${picked.name}). Use only this model for every generate_media call.\n` : ""}${approval ? "- APPROVAL MODE IS ON: calls are not executed; they are shown to the user as proposals to approve. Explain your plan briefly." : ""}
 Model catalog (inputs marked * are required):
-${catalogForAgent()}`;
+${catalogForAgent((m) => modelAllowed(plan, m))}`;
 }
 
 async function chat(model: string, messages: Msg[], effort: Effort) {
@@ -83,10 +84,10 @@ async function chat(model: string, messages: Msg[], effort: Effort) {
 export async function runAgent(
   caller: Caller,
   history: ChatTurn[],
-  opts: { llm: LlmKey; effort: Effort; approval: boolean; media?: string },
+  opts: { llm: LlmKey; effort: Effort; approval: boolean; media?: string; plan?: PlanKey },
 ): Promise<AgentResult> {
   const model = llmSlug(opts.llm);
-  const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval, opts.media) }, ...history.slice(-20)];
+  const messages: Msg[] = [{ role: "system", content: systemPrompt(opts.approval, opts.media, opts.plan ?? "free") }, ...history.slice(-20)];
   const jobs: JobView[] = [];
   const proposals: Proposal[] = [];
   const steps: Step[] = [];

@@ -6,6 +6,8 @@ import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, s
 import { HF_PREFIX, hfMedia, hfStatus, hfSubmit } from "./higgsfield";
 import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit } from "./openrouter-media";
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
+import { getPlan } from "./planServer";
+import { modelAllowed, planName } from "./plans";
 import { persistMedia } from "./storage";
 
 export type JobView = {
@@ -34,6 +36,11 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   const model = getModel(modelId);
   if (!model) throw new HttpError(404, `Unknown model: ${modelId}`);
   const input = buildInput(model, values);
+
+  const { plan } = await getPlan(caller.userId, caller.isAdmin);
+  if (!modelAllowed(plan, model)) {
+    throw new HttpError(403, `${model.name} is included in the Pro and Ultra plans (your plan: ${planName(plan)}). See the Pricing page to upgrade.`);
+  }
 
   if (!caller.isAdmin && caller.profile && Number(caller.profile.credits) < model.price) {
     throw new HttpError(402, `Not enough credits: this run costs about $${model.price.toFixed(3)} and your balance is $${Number(caller.profile.credits).toFixed(3)}.`);

@@ -45,7 +45,7 @@ export function ModelPicker({
   }, [open]);
 
   const plan = usePlan();
-  // Fall back to a model the plan includes (e.g. a Starter/Pro user who had Opus selected).
+  // Fall back to a model the plan includes (e.g. a Premium/Pro user who had Opus selected).
   useEffect(() => {
     if (plan && !llmAllowed(plan, llm)) onChange({ llm: defaultLlm(plan), effort });
   }, [plan, llm, effort, onChange]);

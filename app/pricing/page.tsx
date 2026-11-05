@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Minus, Sparkles } from "lucide-react";
 import { getModel, MODELS } from "@/lib/catalog";
+import { modelAllowed } from "@/lib/plans";
 import { LLMS } from "@/lib/llm";
 import { PLAN_DAYS, PLANS } from "@/lib/plans";
 
@@ -14,7 +15,7 @@ const VID_SECONDS = 5;
 const runs = (credits: number, price: number) => Math.floor(credits / price).toLocaleString("en-US");
 
 const THEME: Record<string, { card: string; text: string; accent: string; button: string }> = {
-  starter: { card: "bg-gradient-to-b from-[#2a2a2a] to-[#1c1c1c]", text: "text-white", accent: "text-white", button: "bg-white text-black hover:bg-zinc-200" },
+  premium: { card: "bg-gradient-to-b from-[#2a2a2a] to-[#1c1c1c]", text: "text-white", accent: "text-white", button: "bg-white text-black hover:bg-zinc-200" },
   pro: { card: "bg-[radial-gradient(120%_120%_at_0%_0%,#7dd3fc_0%,#3b82f6_45%,#1e3a8a_100%)] shadow-[0_20px_60px_-20px_#3b82f6]", text: "text-white", accent: "text-[#7dd3fc]", button: "bg-white text-black hover:bg-zinc-100" },
   ultra: { card: "bg-[radial-gradient(120%_120%_at_0%_0%,#fde68a_0%,#f59e0b_40%,#c2410c_100%)] shadow-[0_20px_60px_-20px_#f59e0b]", text: "text-white", accent: "text-[#fbbf24]", button: "bg-white text-black hover:bg-zinc-100" },
 };
@@ -24,6 +25,7 @@ const FAQ = [
   { q: "What are credits?", a: "Credits are a dollar balance. Every image or video is charged at the model's listed price, so $1 of credits covers about 33 Qwen Image 3 images or ten 5-second Grok Imagine Video 1.5 Lite clips." },
   { q: "Do unused credits expire?", a: `No. Credits stay on your account. The plan itself (and its agent models) is active for ${PLAN_DAYS} days after you redeem the code.` },
   { q: "Which agent models come with each plan?", a: "Every plan includes GLM 5.3 Flash and DeepSeek V4.1 Flash. Ultra adds Opus 5.5 and GPT-6.1 Sol, our strongest planners." },
+  { q: "Which media models come with Premium?", a: "Premium includes every OpenRouter image and video model (Qwen, FLUX 3, Seedream 5.0, Grok Imagine, HeyGen and more). Pro and Ultra add Kling 4.0, Genjutsu Light, Marketing Studio and the rest of the catalog." },
   { q: "Is there an unlimited plan?", a: "No. Every generation uses credits, so you always see exactly what a run costs before it starts." },
   { q: "Can I buy more credits or upgrade later?", a: "Yes. Redeem another code at any time. Credits stack, and the higher plan wins while it is active." },
 ];
@@ -110,7 +112,10 @@ export default function Page() {
                   <div className="mb-3 text-sm text-dim">Included</div>
                   <ul className="space-y-2.5">
                     {[
-                      `All ${MODELS.length} image & video models`,
+                      p.allModels
+                        ? `All ${MODELS.length} image & video models`
+                        : `${MODELS.filter((m) => modelAllowed(p.key, m)).length} OpenRouter image & video models`,
+                      ...(p.allModels ? ["Kling 4.0, Genjutsu Light & Marketing Studio"] : []),
                       "Choose the exact media model for the agent",
                       "Credits never expire",
                       "Full-quality downloads, no watermark",
@@ -170,7 +175,13 @@ export default function Page() {
                       </td>
                       {PLANS.map((p) => (
                         <td key={p.key} className="p-4">
-                          {runs(p.credits, cost)} {m.kind === "video" ? "videos" : "images"}
+                          {modelAllowed(p.key, m) ? (
+                            `${runs(p.credits, cost)} ${m.kind === "video" ? "videos" : "images"}`
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-dim">
+                              <Minus size={16} /> Pro & Ultra
+                            </span>
+                          )}
                         </td>
                       ))}
                     </tr>

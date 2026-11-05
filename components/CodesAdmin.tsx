@@ -38,7 +38,7 @@ export function CodesAdmin() {
   const [items, setItems] = useState<Code[]>([]);
   const [count, setCount] = useState(10);
   const [credits, setCredits] = useState(20);
-  const [plan, setPlan] = useState<"" | "starter" | "pro" | "ultra">("pro");
+  const [plan, setPlan] = useState<"" | "premium" | "pro" | "ultra">("pro");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
