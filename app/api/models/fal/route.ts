@@ -1,6 +1,6 @@
 import { listFalModels } from "@/lib/fal";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic"; // never prerender at build: the fal catalog can take >60s (cached by the CDN header below)
 
 // Slim list of fal image/video models for client pickers.
 export async function GET() {
