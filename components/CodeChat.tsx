@@ -481,8 +481,8 @@ export function CodeChat() {
 
         {empty ? (
           <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-24">
-            <h1 className="select-none text-center text-[88px] font-medium leading-none tracking-[-0.04em] text-[#e9e7e4] sm:text-[128px]">vlipa</h1>
-            <div className="mt-14 w-full max-w-[900px]">{composer}</div>
+            <h1 className="select-none text-center text-[56px] font-medium leading-none tracking-[-0.04em] text-[#e9e7e4] sm:text-[72px]">vlipa</h1>
+            <div className="mt-10 w-full max-w-[900px]">{composer}</div>
           </div>
         ) : (
           <>
