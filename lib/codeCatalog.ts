@@ -47,6 +47,16 @@ export async function codeCatalog(): Promise<CodeModel[]> {
     } });
   }
   found.sort((a, b) => b.created - a.created);
+  // Qwen: only the 3.8 Flash and 3.8 Max models (static fallback if OpenRouter names them differently).
+  const isQwen38 = (m: CodeModel) => /3\.8.*(flash|max)/i.test(`${m.id} ${m.name}`);
+  const qwen = found.filter((f) => f.m.vendor === "qwen" && isQwen38(f.m));
+  for (let i = found.length - 1; i >= 0; i--) if (found[i].m.vendor === "qwen" && !isQwen38(found[i].m)) found.splice(i, 1);
+  if (found.length && !qwen.length) {
+    found.push(
+      { created: 0, m: { id: "qwen/qwen3.8-flash", name: "Qwen 3.8 Flash", vendor: "qwen", max: false, reasoning: true, isNew: true } },
+      { created: 0, m: { id: "qwen/qwen3.8-max", name: "Qwen 3.8 Max", vendor: "qwen", max: true, reasoning: true, isNew: true } },
+    );
+  }
   const list = found.length ? found.map((f) => f.m) : FALLBACK;
   if (found.length) cache = { at: Date.now(), models: list };
   return list;
