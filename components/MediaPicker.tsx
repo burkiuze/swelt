@@ -19,7 +19,7 @@ export function MediaPicker({
 }: {
   value: string;
   onChange: (id: string) => void;
-  kind?: "image" | "video";
+  kind?: "image" | "video" | "audio";
   align?: "left" | "right";
 }) {
   const [open, setOpen] = useState(false);
@@ -40,7 +40,7 @@ export function MediaPicker({
 
   const plan = usePlan();
   const fal = useFalModels();
-  type Pickable = { id: string; name: string; lab: string; kind: "image" | "video"; category: string; priceLabel: string; provider?: string };
+  type Pickable = { id: string; name: string; lab: string; kind: "image" | "video" | "audio"; category: string; priceLabel: string; provider?: string };
   const list = useMemo<Pickable[]>(() => [...MODELS, ...fal].filter((m) => !kind || m.kind === kind), [kind, fal]);
   const allowed = (m: Pickable) => plan === null || modelAllowed(plan, m);
   // Switching tabs (image ↔ video) resets a choice that no longer fits.
@@ -57,6 +57,7 @@ export function MediaPicker({
   const groups: { title: string; items: typeof shown }[] = [
     { title: "Image", items: own.filter((m) => m.kind === "image") },
     { title: "Video", items: own.filter((m) => m.kind === "video") },
+    { title: "Audio", items: own.filter((m) => m.kind === "audio") },
     { title: "fal · Image (Ultra)", items: falShown.filter((m) => m.kind === "image") },
     { title: "fal · Video (Ultra)", items: falShown.filter((m) => m.kind === "video") },
   ].filter((g) => g.items.length);

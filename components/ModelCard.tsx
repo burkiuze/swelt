@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Film, Image as ImageIcon, SquareArrowOutUpRight, Type, Video } from "lucide-react";
+import { AudioLines } from "lucide-react";
 import type { Category, Model } from "@/lib/catalog";
 
-const ICON = { text: Type, image: ImageIcon, video: Video } as const;
+const ICON = { text: Type, image: ImageIcon, video: Video, speech: AudioLines } as const;
 
 export function CategoryChip({ category }: { category: Category }) {
   const [from, to] = category.split("-to-") as (keyof typeof ICON)[];
@@ -26,7 +27,7 @@ export function CategoryChip({ category }: { category: Category }) {
 /** Abstract, photo-like soft blur placeholder (no text). */
 export function ModelArt({ model, className = "" }: { model: Model; className?: string }) {
   const [a, b, c] = model.gradient;
-  const Icon = model.kind === "video" ? Film : ImageIcon;
+  const Icon = model.kind === "video" ? Film : model.kind === "audio" ? AudioLines : ImageIcon;
   return (
     <div
       className={`grain relative overflow-hidden ${className}`}

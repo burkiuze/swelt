@@ -76,7 +76,7 @@ export function FieldInput({ field: f, value, onChange }: { field: Field; value:
       return (
         <div>
           {label}
-          <textarea className="input min-h-[110px] resize-y" value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} placeholder={f.name === "prompt" ? "Describe the image or video…" : ""} />
+          <textarea className="input min-h-[110px] resize-y" value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} placeholder={f.name === "prompt" ? (f.label === "Text to speak" ? "Type the exact words to read out loud…" : "Describe the image or video…") : ""} />
         </div>
       );
     case "select":

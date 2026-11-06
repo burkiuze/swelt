@@ -11,6 +11,7 @@ const TABS = [
   { key: "all", label: "All" },
   { key: "image", label: "Image" },
   { key: "video", label: "Video" },
+  { key: "audio", label: "Voice" },
   { key: "text-to-image", label: "Text → Image" },
   { key: "image-to-image", label: "Image editing" },
   { key: "text-to-video", label: "Text → Video" },
@@ -110,10 +111,11 @@ export function Explore({ previews = {}, extra = [] }: { previews?: Record<strin
 
       {browsing ? (
         <>
-          <Section title="Just landed" subtitle="The newest image and video models on Vlipa." previews={previews} models={MODELS.filter((m) => m.isNew)} />
+          <Section title="Just landed" subtitle="The newest image and video models on Vlipa." previews={previews} models={MODELS.filter((m) => m.isNew && m.kind !== "audio")} />
           <Section title="Video" subtitle="Make clips from text or images, or edit footage." previews={previews} models={MODELS.filter((m) => m.kind === "video" && !m.isNew)} />
           <Section title="Image editing" subtitle="Change an image with a reference and a sentence." previews={previews} models={MODELS.filter((m) => m.category === "image-to-image" && !m.isNew)} />
           <Section title="Text to image" subtitle="From quick sketches to polished renders." previews={previews} models={MODELS.filter((m) => m.category === "text-to-image" && !m.isNew)} />
+          <Section title="Voice" subtitle="Turn text into natural speech in dozens of languages." previews={previews} models={MODELS.filter((m) => m.kind === "audio")} />
           {extra.length > 0 && (
             <section>
               <Section

@@ -18,4 +18,7 @@ export const LAB_LOGOS: Record<string, string> = {
   heygen: "/brand/labs/heygen.svg",
   tbc: "/brand/labs/tbc.svg",
   fal: "/brand/labs/fal.png",
+  microsoft: "/brand/labs/microsoft.svg",
+  "fish-audio": "/brand/labs/fish-audio.svg",
+  deepgram: "/brand/labs/deepgram.svg",
 };

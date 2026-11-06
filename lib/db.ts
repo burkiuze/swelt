@@ -6,7 +6,7 @@ export type Generation = {
   user_id: string;
   model_id: string;
   endpoint_id: string;
-  kind: "image" | "video";
+  kind: "image" | "video" | "audio";
   source: string;
   status: string;
   runpod_job_id: string | null;

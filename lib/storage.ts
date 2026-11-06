@@ -35,7 +35,7 @@ export async function putBytes(path: string, body: Blob | Buffer, type: string):
 }
 
 /** Copy a (possibly short-lived) provider URL into Supabase Storage so assets stay available. */
-export async function persistMedia(url: string, name: string, kind: "image" | "video"): Promise<string> {
+export async function persistMedia(url: string, name: string, kind: "image" | "video" | "audio"): Promise<string> {
   if (!storageEnabled()) return url;
   try {
     if (url.startsWith("data:")) {
@@ -46,7 +46,7 @@ export async function persistMedia(url: string, name: string, kind: "image" | "v
     const res = await fetch(endpoint(), {
       method: "POST",
       headers: headers({ "content-type": "application/json" }),
-      body: JSON.stringify({ source_url: url, path: `outputs/${name}.${kind === "video" ? "mp4" : "png"}` }),
+      body: JSON.stringify({ source_url: url, path: `outputs/${name}.${kind === "video" ? "mp4" : kind === "audio" ? "mp3" : "png"}` }),
       signal: AbortSignal.timeout(90_000),
     });
     const data = await res.json().catch(() => ({}));

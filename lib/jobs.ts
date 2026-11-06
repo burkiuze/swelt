@@ -6,7 +6,7 @@ import { markup, type Model } from "./catalog";
 import { FAL_PREFIX, falCost, falMedia, falStatus, falSubmit, getAnyModel } from "./fal";
 import { dbEnabled, finishGeneration, getGeneration, insertGeneration, setJob, setShowcase, type Generation } from "./db";
 import { HF_PREFIX, hfMedia, hfStatus, hfSubmit } from "./higgsfield";
-import { OR_PREFIX, orCost, orImage, orVideoMedia, orVideoStatus, orVideoSubmit } from "./openrouter-media";
+import { OR_PREFIX, orCost, orImage, orSpeech, orVideoMedia, orVideoStatus, orVideoSubmit } from "./openrouter-media";
 import { buildInput, extractCost, extractMedia, isFinal, status as rpStatus, submit } from "./runpod";
 import { getPlan } from "./planServer";
 import { modelAllowed, planName } from "./plans";
@@ -20,7 +20,7 @@ export type JobView = {
   status: string;
   media: string[];
   media_url: string | null;
-  kind: "image" | "video";
+  kind: "image" | "video" | "audio";
   cost: number;
   error: string | null;
   output?: unknown;
@@ -65,6 +65,24 @@ export async function startJob(caller: Caller, modelId: string, values: Record<s
   try {
     // OpenRouter's image API answers synchronously and can take a minute, so generate after the
     // response is sent; callers poll the generation like any other async job.
+    if (model.provider === "openrouter" && model.kind === "audio") {
+      const jobRef = `${OR_IMAGE}:${gen.id}`;
+      if (dbEnabled()) await setJob(gen.id, jobRef, "IN_PROGRESS");
+      gen = { ...gen, runpod_job_id: jobRef, status: "IN_PROGRESS" };
+      if (!dbEnabled()) memory.set(gen.id, gen);
+      const started = gen;
+      after(async () => {
+        try {
+          const r = await orSpeech(model, input, started.id);
+          const k = Math.max(0.1, r.chars / 1000); // thousands of characters, at least 100 chars billed
+          const cost = r.cost != null ? markup(r.cost / k) * k : model.price * k;
+          await finish(started, { status: "COMPLETED", output: r.output, media: r.media, cost, error: null, charge: !caller.isAdmin });
+        } catch (e) {
+          await finish(started, { status: "FAILED", output: null, media: [], cost: 0, error: e instanceof Error ? e.message : String(e), charge: false }).catch(() => {});
+        }
+      });
+      return view(gen, model);
+    }
     if (model.provider === "openrouter" && model.kind === "image") {
       const jobRef = `${OR_IMAGE}:${gen.id}`;
       if (dbEnabled()) await setJob(gen.id, jobRef, "IN_PROGRESS");

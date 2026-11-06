@@ -6,7 +6,7 @@ export type JobView = {
   status: string;
   media: string[];
   media_url: string | null;
-  kind: "image" | "video";
+  kind: "image" | "video" | "audio";
   cost: number;
   error: string | null;
   output?: unknown;

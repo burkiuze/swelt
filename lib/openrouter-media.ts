@@ -59,10 +59,10 @@ function describe(j: Record<string, unknown> | null, status: number) {
 type OrModel = { id: string; name?: string };
 const lists: Record<string, { at: number; items: OrModel[] }> = {};
 
-async function listModels(kind: "images" | "videos"): Promise<OrModel[]> {
+async function listModels(kind: "images" | "videos" | "speech"): Promise<OrModel[]> {
   const c = lists[kind];
   if (c && Date.now() - c.at < 600_000) return c.items;
-  const r = await call(`/${kind}/models`, undefined, 30_000);
+  const r = await call(kind === "speech" ? "/models?output_modalities=speech" : `/${kind}/models`, undefined, 30_000);
   const items = (Array.isArray(r.json?.data) ? r.json!.data : []) as OrModel[];
   lists[kind] = { at: Date.now(), items: items.filter((m) => typeof m?.id === "string") };
   return lists[kind].items;
@@ -78,7 +78,7 @@ export async function resolveOrSlug(model: Model): Promise<string> {
   } catch {}
   const fallback = model.orSlug || model.id;
   try {
-    const items = await listModels(model.kind === "video" ? "videos" : "images");
+    const items = await listModels(model.kind === "video" ? "videos" : model.kind === "audio" ? "speech" : "images");
     if (items.some((m) => m.id === fallback)) return fallback;
     const want = norm(model.orName || model.name);
     const hit = items.find((m) => m.name && norm(m.name) === want) ?? items.find((m) => norm(m.id.split("/")[1] ?? "") === want);
@@ -178,4 +178,42 @@ export async function orVideoMedia(id: string, output: unknown, name: string): P
 export function orCost(output: unknown): number | null {
   const c = Number(((output ?? {}) as { usage?: { cost?: number } }).usage?.cost);
   return Number.isFinite(c) && c > 0 ? c : null;
+}
+
+/**
+ * Text-to-speech (OpenAI-compatible /audio/speech). The response is raw audio, so the cost is read
+ * from the generation record when OpenRouter exposes one, else estimated from the text length.
+ */
+export async function orSpeech(model: Model, input: Record<string, unknown>, name: string) {
+  const slug = await resolveOrSlug(model);
+  const text = String(input.prompt ?? "").slice(0, 20_000);
+  if (!text.trim()) throw new Error("Type some text to speak.");
+  const body: Record<string, unknown> = { model: slug, input: text, response_format: "mp3", provider: providerPrefs() };
+  if (typeof input.voice === "string" && input.voice.trim()) body.voice = input.voice.trim();
+  const res = await fetch(`${BASE}/audio/speech`, { method: "POST", headers: headers(), body: JSON.stringify(body), cache: "no-store", signal: AbortSignal.timeout(240_000) });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    let j: Record<string, unknown> | null = null;
+    try {
+      j = JSON.parse(t);
+    } catch {}
+    throw new Error(`OpenRouter (${slug}): ${j ? describe(j, res.status) : t.slice(0, 300) || `HTTP ${res.status}`}`);
+  }
+  const type = res.headers.get("content-type")?.split(";")[0] || "audio/mpeg";
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (!buf.length) throw new Error("The voice model returned no audio.");
+  const ext = type.includes("wav") ? "wav" : type.includes("pcm") ? "pcm" : "mp3";
+  const url = storageEnabled() ? await putBytes(`outputs/${name}.${ext}`, buf, type.startsWith("audio/") ? type : "audio/mpeg") : `data:${type};base64,${buf.toString("base64")}`;
+
+  let cost: number | null = null;
+  const genId = res.headers.get("x-generation-id") || res.headers.get("openrouter-generation-id");
+  if (genId) {
+    for (let i = 0; i < 2 && cost == null; i++) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const g = await call(`/generation?id=${encodeURIComponent(genId)}`, undefined, 15_000).catch(() => null);
+      const c = Number((g?.json?.data as { total_cost?: number } | undefined)?.total_cost);
+      if (Number.isFinite(c) && c > 0) cost = c;
+    }
+  }
+  return { slug, media: [url], cost, chars: text.length, output: { model: slug, chars: text.length, generation_id: genId, cost } };
 }

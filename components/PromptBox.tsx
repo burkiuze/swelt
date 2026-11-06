@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { ArrowUp, Clapperboard, Hand, ImageIcon, Loader2, Plus, Shuffle, Sparkles, X } from "lucide-react";
+import { ArrowUp, AudioLines, Clapperboard, Hand, ImageIcon, Loader2, Plus, Shuffle, Sparkles, X } from "lucide-react";
 import { upload } from "@/lib/client";
 import { useAutosize } from "./useAutosize";
 import type { Effort, LlmKey } from "@/lib/llm";
@@ -11,7 +11,7 @@ import { ModelPicker } from "./ModelPicker";
 
 export type AgentPrefs = { llm: LlmKey; effort: Effort; approval: boolean; media: string };
 
-export function AgentControls({ prefs, onChange, kind }: { prefs: AgentPrefs; onChange: (p: AgentPrefs) => void; kind?: "image" | "video" }) {
+export function AgentControls({ prefs, onChange, kind }: { prefs: AgentPrefs; onChange: (p: AgentPrefs) => void; kind?: "image" | "video" | "audio" }) {
   const latest = useRef(prefs);
   latest.current = prefs;
   const setLlm = useCallback((v: { llm: LlmKey; effort: Effort }) => onChange({ ...latest.current, ...v }), [onChange]);
@@ -41,12 +41,13 @@ export function AgentControls({ prefs, onChange, kind }: { prefs: AgentPrefs; on
   );
 }
 
-type Mode = "agent" | "image" | "video";
+type Mode = "agent" | "image" | "video" | "audio";
 
 const MODES: { key: Mode; label: string; icon: typeof Sparkles; badge?: string; placeholder: string; prefix: string }[] = [
   { key: "agent", label: "Agent", icon: Sparkles, placeholder: "Tell the agent what you want to make — it plans the steps and picks the models.", prefix: "" },
   { key: "image", label: "Image", icon: ImageIcon, placeholder: "Describe the image: subject, style, light, framing…", prefix: "" },
   { key: "video", label: "Video", icon: Clapperboard, badge: "New", placeholder: "Describe the shot: what moves, camera, mood, length…", prefix: "" },
+  { key: "audio", label: "Voice", icon: AudioLines, placeholder: "Type the text to speak — the voice model reads it out loud…", prefix: "" },
 ];
 
 const IDEAS: Record<Mode, { label: string; q: string; dot: string }[]> = {
@@ -62,6 +63,11 @@ const IDEAS: Record<Mode, { label: string; q: string; dot: string }[]> = {
     { label: "Mountain travel poster", q: "Minimal travel poster of a snowy mountain at sunrise, flat colors, bold title space.", dot: "from-sky-200 to-blue-500" },
     { label: "Cozy reading nook interior", q: "Cozy reading nook by a rainy window, warm lamp light, film photo look.", dot: "from-orange-200 to-red-400" },
     { label: "Isometric game island", q: "Isometric low-poly floating island with a tiny village and waterfalls, game asset.", dot: "from-lime-200 to-emerald-500" },
+  ],
+  audio: [
+    { label: "Radio ad for a coffee shop", q: "Fresh roasted, slow brewed, and made just for you. Visit Ember Coffee today — your first cup is on us!", dot: "from-amber-300 to-orange-500" },
+    { label: "Calm meditation intro", q: "Take a deep breath in… and slowly let it go. Feel your shoulders relax as you settle into this moment.", dot: "from-sky-200 to-indigo-400" },
+    { label: "Product video voice-over", q: "Meet the tumbler that keeps your tea hot for twelve hours. Lightweight, leak-proof, and made to go wherever you go.", dot: "from-pink-200 to-rose-400" },
   ],
   video: [
     { label: "Drone shot over a neon city", q: "Slow drone push over a rainy neon city at night, reflections on the streets, 5 seconds.", dot: "from-cyan-300 to-blue-600" },

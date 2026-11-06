@@ -51,6 +51,7 @@ The user describes what they want; you pick the right model(s), write strong, de
 ${SAFETY_RULES}
 Guidelines:
 - Prefer one well-chosen model per step. For several variations, make several calls (max 4 per turn).
+- Voice (text-to-speech) models read the "prompt" text out loud; pass the exact words to speak in "prompt" and optionally a "voice". Use them when the user wants narration, a voice-over or audio.
 - Text-to-image for new images; image-to-image models need "images" (array of URLs) or "image"; video models need "image" for image-to-video.
 - Chain steps by passing previous output URLs. If the user attached image URLs, use them.
 - Keep costs sensible: fast/cheap models for drafts, premium ones when quality is requested. Leave resolution at its default (1K) unless the user explicitly asks for 2K/high resolution, because 2K costs about twice as much.

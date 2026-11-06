@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUp,
+  AudioLines,
   Braces,
   Brain,
   Check,
@@ -105,6 +106,18 @@ function Steps({ steps, ms }: { steps: Step[]; ms: number }) {
 
 function MediaTile({ job, onOpen }: { job: JobView; onOpen: (u: string, kind: string) => void }) {
   const url = job.media[0];
+  if (url && job.kind === "audio")
+    return (
+      <div className="flex h-44 w-72 shrink-0 flex-col justify-center gap-3 rounded-md bg-gradient-to-br from-[#1f2937] to-[#0f172a] p-4">
+        <div className="flex items-center gap-2 text-xs text-muted">
+          <AudioLines size={16} className="text-[#a5b4fc]" /> {getModel(job.model_id)?.name ?? "Voice"}
+        </div>
+        <audio src={url} controls preload="metadata" className="w-full" />
+        <a href={url} download className="text-xs text-muted underline-offset-2 hover:text-white hover:underline">
+          Download MP3
+        </a>
+      </div>
+    );
   if (url)
     return (
       <button onClick={() => onOpen(url, job.kind)} className="h-44 shrink-0 overflow-hidden rounded-md bg-[#141414]">
@@ -205,7 +218,7 @@ function Section({ title, count, icon, children }: { title: string; count: numbe
   );
 }
 
-const DIRECT_DEFAULT = { image: "qwen/qwen-image-3", video: "x-ai/grok-imagine-video-1.5-lite" } as const;
+const DIRECT_DEFAULT = { image: "qwen/qwen-image-3", video: "x-ai/grok-imagine-video-1.5-lite", audio: "x-ai/grok-voice-tts-1.0" } as const;
 
 /* ---------------- main ---------------- */
 
@@ -213,7 +226,7 @@ export function AgentChat() {
   const params = useSearchParams();
   const [llm, setLlm] = useState<LlmKey>((LLMS.find((l) => l.key === params.get("llm"))?.key ?? "glm") as LlmKey);
   const [media, setMedia] = useState<string>(params.get("media") || "auto");
-  const mediaKind = (["image", "video"].includes(params.get("kind") || "") ? params.get("kind") : undefined) as "image" | "video" | undefined;
+  const mediaKind = (["image", "video", "audio"].includes(params.get("kind") || "") ? params.get("kind") : undefined) as "image" | "video" | "audio" | undefined;
   // Image / Video mode: prompts go straight to the media model (no text model in between).
   const direct = Boolean(mediaKind);
   const [effort, setEffort] = useState<Effort>((EFFORTS.includes(params.get("effort") as Effort) ? params.get("effort") : "medium") as Effort);
