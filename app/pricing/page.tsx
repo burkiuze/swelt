@@ -4,7 +4,7 @@ import { getModel, MODELS } from "@/lib/catalog";
 import { creditsLabel } from "@/lib/credits";
 import { modelAllowed } from "@/lib/plans";
 import { LLMS } from "@/lib/llm";
-import { CODE_PLAN, CODE_VENDORS, PLAN_DAYS, PLANS } from "@/lib/plans";
+import { CODE_ENABLED, CODE_PLAN, CODE_VENDORS, PLAN_DAYS, PLANS } from "@/lib/plans";
 
 export const metadata = { title: "Pricing — Vlipa" };
 
@@ -140,6 +140,7 @@ export default function Page() {
         })}
       </div>
 
+      {CODE_ENABLED && (
       <section id="code" className="mt-20 scroll-mt-24">
         <h2 className="text-3xl font-semibold tracking-tight">Vlipa Code</h2>
         <p className="mt-1 text-muted">A separate membership for coding. Not included in the media plans.</p>
@@ -176,6 +177,7 @@ export default function Page() {
           </ul>
         </div>
       </section>
+      )}
 
       <section className="mt-20">
         <h2 className="text-3xl font-semibold tracking-tight">Compare plans</h2>

@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import { AccountMenu, CreditsPill, type Me } from "./AccountMenu";
 import { Code2, Crown, FolderOpen, House, LayoutGrid, Search, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
+import { CODE_ENABLED } from "@/lib/plans";
 
 const LINKS = [
   { href: "/", label: "Home", icon: House },
   { href: "/explore", label: "Explore", icon: LayoutGrid },
   { href: "/assets", label: "Assets", icon: FolderOpen },
   { href: "/agent", label: "Generate", icon: Sparkles },
-  { href: "/code", label: "Code", icon: Code2 },
+  ...(CODE_ENABLED ? [{ href: "/code", label: "Code", icon: Code2 }] : []),
   { href: "/pricing", label: "Pricing", icon: Crown },
 ];
 

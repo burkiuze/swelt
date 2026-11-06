@@ -48,6 +48,9 @@ export function modelAllowed(plan: PlanKey, model: { provider?: string }) {
 
 /* ---------------- Code membership (separate from the media plans) ---------------- */
 
+/** Code section switch: false hides /code, the nav link, the home tab and the pricing section. */
+export const CODE_ENABLED = false;
+
 export const CODE_PLAN = {
   key: "code" as const,
   name: "Code",

@@ -2,7 +2,7 @@ import { getCaller, unauthorized } from "@/lib/auth";
 import { dbEnabled, insertGeneration, listGenerations } from "@/lib/db";
 import { providerPrefs } from "@/lib/openrouter-media";
 import { getCodeAccess, getPlan } from "@/lib/planServer";
-import { CODE_DEFAULT_MODEL, CODE_EFFORTS, CODE_PLAN } from "@/lib/plans";
+import { CODE_DEFAULT_MODEL, CODE_EFFORTS, CODE_ENABLED, CODE_PLAN } from "@/lib/plans";
 import { codeCatalog } from "@/lib/codeCatalog";
 import { looksLikeJailbreak, scrubSecrets } from "@/lib/safety";
 
@@ -47,6 +47,7 @@ export async function GET(req: Request) {
 
 // POST { messages: [{ role, content }], model } → streamed plain-text answer.
 export async function POST(req: Request) {
+  if (!CODE_ENABLED) return Response.json({ error: "Vlipa Code is not available right now." }, { status: 404 });
   const caller = await getCaller(req);
   if (!caller || caller.via !== "session") return unauthorized();
   const access = await getCodeAccess(caller.userId, caller.isAdmin);

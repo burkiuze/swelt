@@ -9,7 +9,7 @@ import type { Effort, LlmKey } from "@/lib/llm";
 import { MediaPicker } from "./MediaPicker";
 import { ModelPicker } from "./ModelPicker";
 import { ModelMenu } from "./CodeChat";
-import { CODE_DEFAULT_MODEL, CODE_EFFORTS, type CodeEffort, type CodeModel } from "@/lib/plans";
+import { CODE_DEFAULT_MODEL, CODE_EFFORTS, CODE_ENABLED, type CodeEffort, type CodeModel } from "@/lib/plans";
 
 export type AgentPrefs = { llm: LlmKey; effort: Effort; approval: boolean; media: string };
 
@@ -47,7 +47,7 @@ type Mode = "agent" | "code" | "image" | "video" | "audio";
 
 const MODES: { key: Mode; label: string; icon: typeof Sparkles; badge?: string; placeholder: string; prefix: string }[] = [
   { key: "agent", label: "Agent", icon: Sparkles, placeholder: "Tell the agent what you want to make — it plans the steps and picks the models.", prefix: "" },
-  { key: "code", label: "Code", icon: Code2, placeholder: "Ask for code, paste an error or describe a feature — opens Vlipa Code.", prefix: "" },
+  ...(CODE_ENABLED ? [{ key: "code" as Mode, label: "Code", icon: Code2, placeholder: "Ask for code, paste an error or describe a feature — opens Vlipa Code.", prefix: "" }] : []),
   { key: "image", label: "Image", icon: ImageIcon, placeholder: "Describe the image: subject, style, light, framing…", prefix: "" },
   { key: "video", label: "Video", icon: Clapperboard, badge: "New", placeholder: "Describe the shot: what moves, camera, mood, length…", prefix: "" },
   { key: "audio", label: "Voice", icon: AudioLines, placeholder: "Type the text to speak — the voice model reads it out loud…", prefix: "" },
