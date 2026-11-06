@@ -21,4 +21,8 @@ export const LAB_LOGOS: Record<string, string> = {
   microsoft: "/brand/labs/microsoft.svg",
   "fish-audio": "/brand/labs/fish-audio.svg",
   deepgram: "/brand/labs/deepgram.svg",
+  deepseek: "/brand/labs/deepseek.svg",
+  "z-ai": "/brand/labs/z-ai.svg",
+  anthropic: "/brand/labs/anthropic.svg",
+  openai: "/brand/labs/openai.svg",
 };
