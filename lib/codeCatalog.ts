@@ -29,7 +29,7 @@ export async function codeCatalog(): Promise<CodeModel[]> {
   const found: { m: CodeModel; created: number }[] = [];
   for (const m of data) {
     const v = codeVendorOf(m.id);
-    if (!v || m.id.endsWith(":free") || /guard|embed|rerank|safety|reward/i.test(m.id)) continue;
+    if (!v || m.id.includes(":") || /guard|embed|rerank|safety|reward/i.test(m.id)) continue;
     const out = m.architecture?.output_modalities ?? ["text"];
     const inp = m.architecture?.input_modalities ?? ["text"];
     if (!out.includes("text") || out.some((x) => x !== "text") || !inp.includes("text")) continue;
@@ -47,14 +47,21 @@ export async function codeCatalog(): Promise<CodeModel[]> {
     } });
   }
   found.sort((a, b) => b.created - a.created);
-  // Qwen: only the 3.8 Flash and 3.8 Max models (static fallback if OpenRouter names them differently).
-  const isQwen38 = (m: CodeModel) => /3\.8.*(flash|max)/i.test(`${m.id} ${m.name}`);
-  const qwen = found.filter((f) => f.m.vendor === "qwen" && isQwen38(f.m));
-  for (let i = found.length - 1; i >= 0; i--) if (found[i].m.vendor === "qwen" && !isQwen38(found[i].m)) found.splice(i, 1);
-  if (found.length && !qwen.length) {
+  // Qwen: only Qwen 3.8 Flash and Qwen 3.8 Max (static fallback if OpenRouter renames them).
+  const QWEN: Record<string, string> = { "qwen/qwen3.8-flash": "Qwen 3.8 Flash", "qwen/qwen3.8-max": "Qwen 3.8 Max", "qwen/qwen3.8-max-0902": "Qwen 3.8 Max" };
+  for (let i = found.length - 1; i >= 0; i--) {
+    const f = found[i];
+    if (f.m.vendor !== "qwen") continue;
+    if (QWEN[f.m.id]) f.m.name = QWEN[f.m.id];
+    else found.splice(i, 1);
+  }
+  // One "Qwen 3.8 Max" only (prefer the plain id).
+  const maxes = found.filter((f) => f.m.name === "Qwen 3.8 Max");
+  if (maxes.length > 1) found.splice(found.indexOf(maxes.find((f) => f.m.id !== "qwen/qwen3.8-max") ?? maxes[1]), 1);
+  if (found.length && !found.some((f) => f.m.vendor === "qwen")) {
     found.push(
-      { created: 0, m: { id: "qwen/qwen3.8-flash", name: "Qwen 3.8 Flash", vendor: "qwen", max: false, reasoning: true, isNew: true } },
-      { created: 0, m: { id: "qwen/qwen3.8-max", name: "Qwen 3.8 Max", vendor: "qwen", max: true, reasoning: true, isNew: true } },
+      { created: 0, m: { id: "qwen/qwen3.8-flash", name: "Qwen 3.8 Flash", vendor: "qwen", max: false, reasoning: true, isNew: false } },
+      { created: 0, m: { id: "qwen/qwen3.8-max-0902", name: "Qwen 3.8 Max", vendor: "qwen", max: true, reasoning: true, isNew: false } },
     );
   }
   const list = found.length ? found.map((f) => f.m) : FALLBACK;
