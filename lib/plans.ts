@@ -65,6 +65,7 @@ export const CODE_MODELS = [
   { key: "deepseek", label: "DeepSeek V4.1 Flash", vendor: "DeepSeek", lab: "deepseek", slug: "deepseek/deepseek-v4.1-flash-1017", hint: "deepseek.*v4\\.1.*flash", ultra: false, isNew: false },
   { key: "glm", label: "GLM 5.3 Flash", vendor: "Z.ai", lab: "z-ai", slug: "z-ai/glm-5.3-flash", hint: "glm.*5\\.3.*flash", ultra: false, isNew: false },
   { key: "hy4", label: "Tencent HY4", vendor: "Tencent", lab: "tencent", slug: "tencent/hy4", hint: "tencent.*(hy|hunyuan)[- ]?4", ultra: false, isNew: true },
+  { key: "muse", label: "Muse Spark 1.3", vendor: "Meta", lab: "meta", slug: "meta/muse-spark-1.3-contributor", hint: "muse.*spark.*1\\.3", ultra: false, isNew: true },
   { key: "opus", label: "Claude Opus 5.5", vendor: "Anthropic", lab: "anthropic", slug: "anthropic/claude-opus-5.5", hint: "claude.*opus.*5\\.5", ultra: true, isNew: false },
   { key: "sol", label: "GPT-6.1 Sol", vendor: "OpenAI", lab: "openai", slug: "openai/gpt-6.1-sol", hint: "gpt-6\\.1.*sol", ultra: true, isNew: false },
 ] as const;
