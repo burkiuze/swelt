@@ -58,11 +58,15 @@ export const CODE_PLAN = {
   blurb: "A fast coding assistant: 100 messages a day.",
 };
 
-// Coding models (OpenRouter slugs), always routed to the cheapest provider.
+// Coding models (OpenRouter slugs), always routed to the cheapest provider. `ultra` models also need
+// the Ultra media plan; `hint` lets the server find the live slug by name if the guessed one is wrong.
 export const CODE_MODELS = [
-  { key: "minimax", label: "MiniMax M3.1 Flash", vendor: "MiniMax", slug: "minimax/minimax-m3.1-flash" },
-  { key: "deepseek", label: "DeepSeek V4.1 Flash", vendor: "DeepSeek", slug: "deepseek/deepseek-v4.1-flash-1017" },
-  { key: "glm", label: "GLM 5.3 Flash", vendor: "Z.ai", slug: "z-ai/glm-5.3-flash" },
+  { key: "minimax", label: "MiniMax M3.1 Flash", vendor: "MiniMax", lab: "minimax", slug: "minimax/minimax-m3.1-flash", hint: "minimax.*m3\\.1.*flash", ultra: false, isNew: false },
+  { key: "deepseek", label: "DeepSeek V4.1 Flash", vendor: "DeepSeek", lab: "deepseek", slug: "deepseek/deepseek-v4.1-flash-1017", hint: "deepseek.*v4\\.1.*flash", ultra: false, isNew: false },
+  { key: "glm", label: "GLM 5.3 Flash", vendor: "Z.ai", lab: "z-ai", slug: "z-ai/glm-5.3-flash", hint: "glm.*5\\.3.*flash", ultra: false, isNew: false },
+  { key: "hy4", label: "Tencent HY4", vendor: "Tencent", lab: "tencent", slug: "tencent/hy4", hint: "tencent.*(hy|hunyuan)[- ]?4", ultra: false, isNew: true },
+  { key: "opus", label: "Claude Opus 5.5", vendor: "Anthropic", lab: "anthropic", slug: "anthropic/claude-opus-5.5", hint: "claude.*opus.*5\\.5", ultra: true, isNew: false },
+  { key: "sol", label: "GPT-6.1 Sol", vendor: "OpenAI", lab: "openai", slug: "openai/gpt-6.1-sol", hint: "gpt-6\\.1.*sol", ultra: true, isNew: false },
 ] as const;
 export type CodeModelKey = (typeof CODE_MODELS)[number]["key"];
 

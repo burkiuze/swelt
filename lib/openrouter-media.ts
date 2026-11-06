@@ -17,8 +17,16 @@ const BASE = "https://openrouter.ai/api/v1";
  * ("price"; set OPENROUTER_PROVIDER_SORT=throughput or latency to favour speed), falling back
  * to the next provider if one fails.
  */
-export function providerPrefs() {
+// Preferred OpenRouter providers per model (tried first; falls back to the cheapest if they fail).
+const PINNED: [RegExp, string][] = [
+  [/^deepseek\/deepseek-v4\.1-flash/, process.env.OPENROUTER_PROVIDER_DEEPSEEK || "relace"],
+  [/^z-ai\/glm-5\.3-flash/, process.env.OPENROUTER_PROVIDER_GLM || "wafer"],
+];
+
+export function providerPrefs(slug?: string) {
   const sort = process.env.OPENROUTER_PROVIDER_SORT || "price";
+  const pin = slug ? PINNED.find(([re]) => re.test(slug))?.[1] : undefined;
+  if (pin) return { order: [pin], sort, allow_fallbacks: true };
   return { sort, allow_fallbacks: true };
 }
 export const OR_PREFIX = "openrouter/";

@@ -66,7 +66,7 @@ export default async function AccountPage() {
         <RedeemForm />
         <p className="mt-3 text-xs text-dim">Bought a Vlipa code? Enter it above and the credits are added to your balance instantly. Each code works once.</p>
         {caller.isAdmin && (
-          <span className="mt-3 flex gap-2"><Link href="/admin/codes" className="btn">Manage redeem codes</Link><Link href="/admin/users" className="btn">Users</Link></span>
+          <span className="mt-3 flex gap-2"><Link href="/admin/codes" className="btn">Manage redeem codes</Link><Link href="/admin/users" className="btn">Users</Link><Link href="/admin/github" className="btn">GitHub bot</Link></span>
         )}
       </Section>
 
