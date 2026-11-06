@@ -2,19 +2,18 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowUp, Bug, Check, ChevronDown, Code2, GitCommitHorizontal, History, Lightbulb, Loader2, Lock, PenLine, Plus, Square, Trash2, X } from "lucide-react";
-import { CODE_MODELS, CODE_PLAN, type CodeModelKey } from "@/lib/plans";
+import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronRight, Code2, History, Loader2, Lock, Paperclip, Plus, Square, Trash2, X } from "lucide-react";
+import { CODE_DEFAULT_MODEL, CODE_EFFORTS, CODE_PLAN, CODE_VENDORS, codeVendorOf, type CodeEffort, type CodeModel } from "@/lib/plans";
 import { Markdown } from "./Markdown";
 import { useAutosize } from "./useAutosize";
-import { LAB_LOGOS } from "@/lib/labs";
 import { AttachFiles, CommitCard, FileChip, GithubButton, parseFiles, useGithub, type Attached } from "./CodeGithub";
 
-type Mode = "build" | "debug" | "explain";
-type Msg = { role: "user" | "assistant"; content: string; error?: boolean; model?: CodeModelKey; files?: string[]; ctx?: string };
-type Chat = { id: string; title: string; updatedAt: number; model: CodeModelKey; msgs: Msg[] };
+type Msg = { role: "user" | "assistant"; content: string; error?: boolean; model?: string; files?: string[]; ctx?: string };
+type Chat = { id: string; title: string; updatedAt: number; model: string; msgs: Msg[] };
 type Status = { active: boolean; expires: string | null; used: number; limit: number; unlimited?: boolean; plan?: string };
 
 const KEY = "vlipa-code-chats-v1";
+const PREF = "vlipa-code-prefs";
 const readChats = (): Chat[] => {
   try {
     return JSON.parse(localStorage.getItem(KEY) || "[]");
@@ -31,28 +30,36 @@ const writeChats = (list: Chat[]) => {
   }
 };
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now()));
-const freshChat = (model: CodeModelKey = "minimax"): Chat => ({ id: newId(), title: "New chat", updatedAt: Date.now(), model, msgs: [] });
+// Older chats stored short keys ("glm", "minimax"…); anything that isn't a known vendor slug falls back to the default.
+const fixModel = (m?: string) => (m && m.includes("/") && codeVendorOf(m) ? m : CODE_DEFAULT_MODEL);
+const freshChat = (model = CODE_DEFAULT_MODEL): Chat => ({ id: newId(), title: "New chat", updatedAt: Date.now(), model, msgs: [] });
 
-const MODES: { key: Mode; label: string; icon: typeof PenLine; hint: string; placeholder: string }[] = [
-  { key: "build", label: "Write", icon: PenLine, hint: "", placeholder: "What should we build? Describe it or paste code…" },
-  { key: "debug", label: "Debug", icon: Bug, hint: "Find the bug, explain the root cause briefly, then give the fixed code.", placeholder: "Paste the error and the code that throws it…" },
-  { key: "explain", label: "Explain", icon: Lightbulb, hint: "Explain step by step in simple words, with a short example.", placeholder: "Paste code or ask how something works…" },
-];
+const EFFORT_LABEL: Record<CodeEffort, string> = { low: "Low", medium: "Medium", high: "High" };
 
-const SUGGESTIONS: Record<Mode, string[]> = {
-  build: ["A Python script that renames photos by their EXIF date", "A responsive pricing section with Tailwind CSS", "A REST API in Express with JWT login"],
-  debug: ["TypeError: Cannot read properties of undefined (reading 'map')", "My useEffect runs in an infinite loop", "CORS error when calling my API from the browser"],
-  explain: ["How does async/await work in JavaScript?", "Explain SQL JOIN types with examples", "What is the difference between git merge and rebase?"],
-};
-
-function LabMark({ lab, label }: { lab: string; label: string }) {
-  const src = LAB_LOGOS[lab];
-  if (src) return <img src={src} alt="" className="h-5 w-5 shrink-0 object-contain opacity-90" />;
-  return <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white/10 text-[11px] font-semibold text-white/80">{label[0]}</span>;
+function Logo({ id, size = 20 }: { id: string; size?: number }) {
+  const v = codeVendorOf(id);
+  if (!v) return <Code2 size={size} />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={v.logo} alt="" width={size} height={size} className="shrink-0 object-contain" style={{ width: size, height: size }} />;
 }
 
-function ModelMenu({ value, onChange, ultra }: { value: CodeModelKey; onChange: (k: CodeModelKey) => void; ultra: boolean }) {
+function ModelMenu({
+  models,
+  value,
+  onChange,
+  effort,
+  onEffort,
+  ultra,
+}: {
+  models: CodeModel[];
+  value: string;
+  onChange: (id: string) => void;
+  effort: CodeEffort;
+  onEffort: (e: CodeEffort) => void;
+  ultra: boolean;
+}) {
   const [open, setOpen] = useState(false);
+  const [vendor, setVendor] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -60,58 +67,122 @@ function ModelMenu({ value, onChange, ultra }: { value: CodeModelKey; onChange: 
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [open]);
-  const current = CODE_MODELS.find((m) => m.key === value) ?? CODE_MODELS[0];
+  const current = models.find((m) => m.id === value);
+  const vendors = CODE_VENDORS.map((v) => ({ ...v, models: models.filter((m) => m.vendor === v.key) })).filter((v) => v.models.length);
+  const sub = vendors.find((v) => v.key === vendor);
+
+  const modelList = sub && (
+    <div className="max-h-[min(28rem,62vh)] overflow-y-auto p-1.5">
+      {sub.models.map((m) => {
+        const locked = m.max && !ultra;
+        const row = (
+          <>
+            <Logo id={m.id} size={18} />
+            <span className={`min-w-0 flex-1 truncate text-[14.5px] ${locked ? "text-zinc-500" : "text-zinc-100"}`}>{m.name}</span>
+            {m.isNew && <span className="rounded-md bg-[#5fc7b4]/10 px-1.5 py-0.5 text-[11px] text-[#5fc7b4]">New</span>}
+            {m.max && <span className="rounded-md bg-[#5fc7b4]/10 px-1.5 py-0.5 text-[11px] font-medium text-[#5fc7b4]">Max</span>}
+            {locked ? <Lock size={14} className="text-zinc-500" /> : m.id === value ? <Check size={15} /> : null}
+          </>
+        );
+        const cls = "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/5";
+        return locked ? (
+          <Link key={m.id} href="/pricing" className={cls} title="Max models need the Ultra plan">
+            {row}
+          </Link>
+        ) : (
+          <button
+            key={m.id}
+            type="button"
+            className={cls}
+            onClick={() => {
+              onChange(m.id);
+              setOpen(false);
+              setVendor(null);
+            }}
+          >
+            {row}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`flex h-10 items-center gap-2 rounded-full px-4 text-[14px] transition ${open ? "bg-[#2e2f33] text-white" : "bg-[#2a2b2f] text-zinc-200 hover:bg-[#2e2f33]"}`}
+        onClick={() => {
+          setOpen((o) => !o);
+          setVendor(null);
+        }}
+        className={`flex h-11 max-w-[55vw] items-center gap-2 rounded-full px-4 text-[14.5px] transition sm:max-w-none ${open ? "bg-[#34363a]" : "bg-[#323437] hover:bg-[#383a3e]"}`}
       >
-        <span className="hidden sm:inline">{current.label}</span>
-        <span className="sm:hidden">Model</span>
-        <ChevronDown size={15} className={`text-muted transition ${open ? "rotate-180" : ""}`} />
+        <Logo id={value} size={18} />
+        <span className="truncate text-zinc-100">{current?.name ?? "Model"}</span>
+        {current?.reasoning && <span className="hidden text-zinc-500 sm:inline">{EFFORT_LABEL[effort]}</span>}
+        <ChevronDown size={15} className={`shrink-0 text-zinc-400 transition ${open ? "rotate-180" : ""}`} />
       </button>
+
       {open && (
-        <div className="absolute bottom-full right-0 z-50 mb-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[22px] border border-line-2 bg-[#1e1f22] p-2 shadow-2xl shadow-black/60">
-          {!ultra && (
-            <Link href="/pricing" className="mb-1 flex items-center justify-between rounded-2xl border border-white/5 bg-[#24272a] px-4 py-3 text-[15px] text-zinc-100 transition hover:bg-[#2a2e31]">
-              Get access to the best models <ArrowRight size={18} className="text-[#5fc7b4]" />
-            </Link>
-          )}
-          <div className="max-h-[min(26rem,60vh)] overflow-y-auto">
-            {CODE_MODELS.map((m) => {
-              const locked = m.ultra && !ultra;
-              const row = (
-                <>
-                  <LabMark lab={m.lab} label={m.vendor} />
-                  <span className={`flex min-w-0 flex-1 items-center gap-2 ${locked ? "text-zinc-400" : "text-zinc-100"}`}>
-                    <span className="truncate text-[15px]">{m.label}</span>
-                    {m.isNew && <span className="rounded-md bg-[#5fc7b4]/10 px-1.5 py-0.5 text-[11px] text-[#5fc7b4]">New</span>}
-                    {m.ultra && <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[11px] text-zinc-400">Ultra</span>}
-                  </span>
-                  {locked ? <Lock size={16} className="text-zinc-500" /> : m.key === value ? <Check size={16} className="text-white" /> : null}
-                </>
-              );
-              const cls = "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/5";
-              return locked ? (
-                <Link key={m.key} href="/pricing" className={cls} title="Needs the Ultra plan">
-                  {row}
-                </Link>
-              ) : (
-                <button
-                  key={m.key}
-                  type="button"
-                  onClick={() => {
-                    onChange(m.key);
-                    setOpen(false);
-                  }}
-                  className={cls}
-                >
-                  {row}
+        <div className="absolute bottom-full right-0 z-50 mb-2 w-[min(21rem,calc(100vw-2rem))]">
+          {/* Desktop: the vendor's models fly out to the left. */}
+          {sub && <div className="absolute bottom-0 right-full mr-2 hidden w-80 rounded-[20px] border border-white/[0.07] bg-[#27292c] shadow-2xl shadow-black/60 sm:block">{modelList}</div>}
+
+          <div className="relative overflow-hidden rounded-[20px] border border-white/[0.07] bg-[#27292c] shadow-2xl shadow-black/60">
+            {/* Mobile: the model list replaces the vendor list. */}
+            {sub && (
+              <div className="absolute inset-0 z-10 flex flex-col bg-[#27292c] sm:hidden">
+                <button className="flex items-center gap-2 border-b border-white/5 px-4 py-3 text-[14px] text-zinc-300" onClick={() => setVendor(null)}>
+                  <ArrowLeft size={16} /> {sub.label}
                 </button>
-              );
-            })}
+                <div className="flex-1 overflow-y-auto">{modelList}</div>
+              </div>
+            )}
+            <div className="px-4 pb-2 pt-4 text-[14px] font-medium text-zinc-400">Model</div>
+            {!ultra && (
+              <Link href="/pricing" className="mx-2 mb-1 flex items-center justify-between rounded-2xl border border-[#5fc7b4]/20 bg-[#5fc7b4]/[0.07] px-4 py-3 text-[14px] text-zinc-300 transition hover:bg-[#5fc7b4]/[0.12]">
+                Get access to the best models <ArrowRight size={16} className="text-[#5fc7b4]" />
+              </Link>
+            )}
+            <div className="max-h-[min(22rem,50vh)] overflow-y-auto p-1.5">
+              {vendors.map((v) => (
+                <button
+                  key={v.key}
+                  type="button"
+                  onMouseEnter={() => window.matchMedia("(min-width: 640px)").matches && setVendor(v.key)}
+                  onClick={() => setVendor(v.key)}
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${vendor === v.key ? "bg-white/[0.06]" : "hover:bg-white/5"}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={v.logo} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                  <span className="flex-1 text-[15px] text-zinc-100">{v.label}</span>
+                  <span className="text-xs text-zinc-500">{v.models.length}</span>
+                  <ChevronRight size={15} className="text-zinc-500" />
+                </button>
+              ))}
+              {vendors.length === 0 && (
+                <p className="flex items-center gap-2 px-3 py-3 text-sm text-zinc-400">
+                  <Loader2 size={14} className="animate-spin" /> Loading models…
+                </p>
+              )}
+            </div>
+            {current?.reasoning && (
+              <div className="flex items-center gap-2 border-t border-white/5 px-4 py-3">
+                <span className="flex-1 text-[13px] text-zinc-400">Thinking</span>
+                <div className="flex rounded-full bg-black/30 p-0.5">
+                  {CODE_EFFORTS.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => onEffort(e)}
+                      className={`rounded-full px-3 py-1 text-[12.5px] transition ${effort === e ? "bg-[#3a3c40] text-white" : "text-zinc-400 hover:text-white"}`}
+                    >
+                      {EFFORT_LABEL[e]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -121,13 +192,15 @@ function ModelMenu({ value, onChange, ultra }: { value: CodeModelKey; onChange: 
 
 export function CodeChat() {
   const [status, setStatus] = useState<Status | null>(null);
+  const [models, setModels] = useState<CodeModel[]>([]);
   const [chats, setChats] = useState<Chat[]>([]);
   const [chat, setChat] = useState<Chat>(() => freshChat());
-  const [mode, setMode] = useState<Mode>("build");
+  const [effort, setEffortState] = useState<CodeEffort>("medium");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [attached, setAttached] = useState<Attached[]>([]);
+  const [pending, setPending] = useState<string | null>(null);
   const gh = useGithub();
   const abort = useRef<AbortController | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
@@ -143,11 +216,41 @@ export function CodeChat() {
   useEffect(() => {
     loadStatus();
     setChats(readChats());
+    let prefs: { model?: string; effort?: CodeEffort } = {};
+    try {
+      prefs = JSON.parse(localStorage.getItem(PREF) || "{}");
+    } catch {}
+    if (prefs.model) setChat((c) => ({ ...c, model: fixModel(prefs.model) }));
+    if (prefs.effort && CODE_EFFORTS.includes(prefs.effort)) setEffortState(prefs.effort);
+    fetch("/api/code/models")
+      .then((r) => r.json())
+      .then((d) => setModels(d.models ?? []))
+      .catch(() => {});
+    // Prompt handed over from the home page (?q=…): sent once the membership check passes.
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) {
+      setPending(q);
+      window.history.replaceState(null, "", "/code");
+    }
   }, [loadStatus]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" });
   }, [chat.msgs]);
+
+  const savePrefs = (p: { model?: string; effort?: CodeEffort }) => {
+    try {
+      localStorage.setItem(PREF, JSON.stringify({ model: chat.model, effort, ...p }));
+    } catch {}
+  };
+  const setModel = (model: string) => {
+    setChat((c) => ({ ...c, model }));
+    savePrefs({ model });
+  };
+  const setEffort = (e: CodeEffort) => {
+    setEffortState(e);
+    savePrefs({ effort: e });
+  };
 
   const save = (c: Chat) => {
     if (!c.msgs.length) return;
@@ -159,13 +262,11 @@ export function CodeChat() {
 
   const send = async (content: string) => {
     if (!content.trim() || busy) return;
-    const hint = MODES.find((m) => m.key === mode)?.hint;
     const ctx = attached.map((f) => `File: ${f.path}\n\`\`\`\n${f.content}\n\`\`\``).join("\n\n");
-    const asked = (hint && !chat.msgs.length ? `${content}\n\n(${hint})` : content) + (ctx ? `\n\n${ctx}` : "");
     const msgs: Msg[] = [...chat.msgs, { role: "user", content, ...(attached.length ? { files: attached.map((f) => f.path), ctx } : {}) }];
     const apiMsgs = [
       ...chat.msgs.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.ctx ? `${m.content}\n\n${m.ctx}` : m.content })),
-      { role: "user" as const, content: asked },
+      { role: "user" as const, content: ctx ? `${content}\n\n${ctx}` : content },
     ];
     setAttached([]);
     let current: Chat = { ...chat, msgs, title: chat.msgs.length ? chat.title : content.slice(0, 60), updatedAt: Date.now() };
@@ -178,7 +279,7 @@ export function CodeChat() {
       const res = await fetch("/api/code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: chat.model, messages: apiMsgs, repo: gh.target?.repo, branch: gh.target?.branch }),
+        body: JSON.stringify({ model: chat.model, effort, messages: apiMsgs, repo: gh.target?.repo, branch: gh.target?.branch }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -212,6 +313,15 @@ export function CodeChat() {
     }
   };
 
+  useEffect(() => {
+    if (pending && status?.active && !busy) {
+      const q = pending;
+      setPending(null);
+      send(q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, status?.active]);
+
   if (status && !status.active) {
     return (
       <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center px-4 text-center">
@@ -220,7 +330,7 @@ export function CodeChat() {
         </span>
         <h1 className="mt-5 text-3xl font-normal tracking-tight">Vlipa Code</h1>
         <p className="mt-2 text-muted">
-          A fast coding assistant with {CODE_MODELS.map((m) => m.label).join(", ")} — {CODE_PLAN.dailyLimit} messages a day. Get the Code membership to start.
+          A coding assistant with text models from {CODE_VENDORS.map((v) => v.label).join(", ")} — {CODE_PLAN.dailyLimit} messages a day. Get the Code membership to start.
         </p>
         <div className="mt-6 flex gap-2">
           <Link href="/pricing#code" className="btn btn-primary">
@@ -237,9 +347,7 @@ export function CodeChat() {
   const left = status ? (status.unlimited ? null : Math.max(0, status.limit - status.used)) : null;
   const empty = chat.msgs.length === 0;
   const ultra = !!status?.unlimited || status?.plan === "ultra";
-  const current = MODES.find((m) => m.key === mode)!;
-
-  const attach = (f: Attached) => setAttached((a) => [...a.filter((x) => x.path !== f.path), f].slice(-8));
+  const modelName = (id?: string) => models.find((m) => m.id === id)?.name ?? id?.split("/")[1] ?? "Vlipa Code";
   const newChat = () => {
     if (busy) return;
     setChat(freshChat(chat.model));
@@ -248,9 +356,9 @@ export function CodeChat() {
   };
 
   const composer = (
-    <div className="w-full rounded-[26px] border border-white/[0.07] bg-[#232427] shadow-2xl shadow-black/30 transition focus-within:border-white/15">
+    <div className="w-full rounded-[28px] border border-white/[0.06] bg-[#2a2c2f] shadow-2xl shadow-black/30 transition focus-within:border-white/[0.12]">
       {attached.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-5 pt-4">
+        <div className="flex flex-wrap gap-1.5 px-6 pt-4">
           {attached.map((f) => (
             <FileChip key={f.path} path={f.path} onRemove={() => setAttached(attached.filter((x) => x.path !== f.path))} />
           ))}
@@ -267,44 +375,33 @@ export function CodeChat() {
           }
         }}
         rows={empty ? 2 : 1}
-        placeholder={empty ? current.placeholder : "Ask a follow-up…"}
-        className="block w-full resize-none bg-transparent px-6 pt-5 text-[17px] leading-relaxed outline-none placeholder:text-zinc-500"
+        placeholder={empty ? "Ask anything…" : "Ask a follow-up…"}
+        className="block w-full resize-none bg-transparent px-7 pt-6 text-[17px] leading-relaxed outline-none placeholder:text-zinc-500"
       />
-      <div className="flex items-center gap-1.5 px-3 pb-3 pt-3 sm:gap-2">
+      <div className="flex items-center gap-1 px-4 pb-4 pt-3">
         {gh.target ? (
-          <AttachFiles target={gh.target} disabled={busy} onAdd={attach} />
-        ) : gh.status?.configured && !gh.connected ? (
-          <a href="/api/github/connect" title="Connect GitHub to attach files" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/5 hover:text-white">
-            <Plus size={20} />
-          </a>
-        ) : null}
-        <div className="flex rounded-full bg-black/30 p-1">
-          {MODES.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setMode(key)}
-              className={`flex h-9 items-center gap-2 rounded-full px-3.5 text-[14px] transition ${mode === key ? "bg-[#2f3034] text-white" : "text-zinc-400 hover:text-white"}`}
-            >
-              <Icon size={15} /> <span className={mode === key ? "" : "hidden sm:inline"}>{label}</span>
-            </button>
-          ))}
-        </div>
+          <AttachFiles target={gh.target} disabled={busy} onAdd={(f) => setAttached((a) => [...a.filter((x) => x.path !== f.path), f].slice(-8))} />
+        ) : (
+          <span className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600" title="Connect GitHub and pick a repository to attach files">
+            <Paperclip size={19} />
+          </span>
+        )}
+        <GithubButton gh={gh} compact />
         <span className="flex-1" />
-        {left !== null && <span className={`hidden text-xs lg:inline ${left <= 10 ? "text-[#ff9592]" : "text-zinc-500"}`}>{left} left today</span>}
-        <ModelMenu value={chat.model} ultra={ultra} onChange={(model) => setChat({ ...chat, model })} />
+        {left !== null && <span className={`mr-2 hidden text-xs lg:inline ${left <= 10 ? "text-[#ff9592]" : "text-zinc-500"}`}>{left} left today</span>}
+        <ModelMenu models={models} value={chat.model} onChange={setModel} effort={effort} onEffort={setEffort} ultra={ultra} />
         {busy ? (
-          <button onClick={() => abort.current?.abort()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ececec] text-black" aria-label="Stop">
+          <button onClick={() => abort.current?.abort()} className="ml-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#3fa591] text-white" aria-label="Stop">
             <Square size={14} fill="currentColor" />
           </button>
         ) : (
           <button
             onClick={() => send(text)}
             disabled={!text.trim() || left === 0}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ececec] text-black transition hover:bg-white disabled:opacity-60"
+            className="ml-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#3fa591] text-white transition hover:bg-[#48b39e] disabled:opacity-60"
             aria-label="Send"
           >
-            <ArrowUp size={19} />
+            <ArrowUp size={20} />
           </button>
         )}
       </div>
@@ -314,8 +411,7 @@ export function CodeChat() {
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex h-14 items-center gap-2 px-4">
-        <Code2 size={20} className="text-white" />
-        <span className="flex-1 text-[15px] font-medium">Vlipa Code</span>
+        <span className="flex-1 text-[19px] font-semibold tracking-tight">vlipa</span>
         <button className="rounded-full p-1.5 text-zinc-400 hover:text-white md:hidden" onClick={() => setHistoryOpen(false)} aria-label="Close">
           <X size={18} />
         </button>
@@ -336,7 +432,7 @@ export function CodeChat() {
                 className="min-w-0 flex-1 truncate px-3 py-2 text-left text-[14px] text-zinc-300"
                 onClick={() => {
                   if (busy) return;
-                  setChat(c);
+                  setChat({ ...c, model: fixModel(c.model) });
                   setAttached([]);
                   setHistoryOpen(false);
                 }}
@@ -360,7 +456,7 @@ export function CodeChat() {
         )}
       </div>
       <div className="flex justify-center border-t border-white/5 p-4">
-        <Link href="/pricing#code" className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-1.5 text-[13px] text-zinc-300 transition hover:bg-white/5 hover:text-white">
+        <Link href="/pricing#code" className="rounded-full border border-white/10 px-4 py-1.5 text-[13px] text-zinc-300 transition hover:bg-white/5 hover:text-white">
           View plans
         </Link>
       </div>
@@ -368,61 +464,30 @@ export function CodeChat() {
   );
 
   return (
-    <div className="flex h-[calc(100dvh-5.5rem)] overflow-hidden bg-[#191a1c]">
-      <aside className="hidden w-64 shrink-0 border-r border-white/5 bg-[#1c1d1f] md:block">{sidebar}</aside>
+    <div className="flex h-[calc(100dvh-5.5rem)] overflow-hidden bg-[#1f2023]">
+      <aside className="hidden w-64 shrink-0 border-r border-white/5 bg-[#191a1c] md:block">{sidebar}</aside>
 
       <div className="relative flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 shrink-0 items-center gap-2 px-3">
-          <button className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-white md:hidden" onClick={() => setHistoryOpen(true)} aria-label="Chats">
+        <div className="flex h-12 shrink-0 items-center gap-1 px-3 md:hidden">
+          <button className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-white" onClick={() => setHistoryOpen(true)} aria-label="Chats">
             <History size={18} />
           </button>
           {!empty && (
-            <button className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-white md:hidden" onClick={newChat} aria-label="New chat">
+            <button className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 hover:bg-white/5 hover:text-white" onClick={newChat} aria-label="New chat">
               <Plus size={18} />
             </button>
           )}
-          <span className="flex-1" />
-          <GithubButton gh={gh} />
         </div>
 
         {empty ? (
-          <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-16">
-            <h1 className="text-center text-[34px] font-normal tracking-tight text-zinc-100 sm:text-[44px]">What are we building?</h1>
-            <div className="mt-10 w-full max-w-[880px]">{composer}</div>
-            <div className="mt-10 grid w-full max-w-[880px] gap-4 sm:grid-cols-2">
-              <button
-                onClick={() => {
-                  setMode("build");
-                  inputRef.current?.focus();
-                }}
-                className="rounded-2xl bg-gradient-to-br from-[#3f8f93] to-[#21575b] p-5 text-left transition hover:brightness-110"
-              >
-                <div className="flex items-center gap-2.5 text-[17px] font-medium text-white">
-                  <PenLine size={19} /> Write and fix code
-                </div>
-                <p className="mt-2 text-[14.5px] leading-snug text-white/80">Describe a feature or paste an error and get working code in seconds.</p>
-              </button>
-              <button
-                onClick={() => {
-                  if (gh.status?.configured && !gh.connected) window.location.href = "/api/github/connect";
-                  else inputRef.current?.focus();
-                }}
-                className="rounded-2xl bg-gradient-to-br from-[#1d3a3d] to-[#141c1e] p-5 text-left transition hover:brightness-125"
-              >
-                <div className="flex items-center gap-2.5 text-[17px] font-medium text-white">
-                  <GitCommitHorizontal size={19} /> Commit straight to GitHub
-                  <span className="rounded-md bg-[#5fc7b4]/10 px-1.5 py-0.5 text-[11px] font-normal text-[#5fc7b4]">NEW</span>
-                </div>
-                <p className="mt-2 text-[14.5px] leading-snug text-white/75">
-                  {gh.connected ? "Pick a repository at the top, attach files with + and commit the changes from the chat." : "Connect GitHub, attach repository files and commit the changes in one click."}
-                </p>
-              </button>
-            </div>
+          <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-24">
+            <h1 className="select-none text-center text-[88px] font-medium leading-none tracking-[-0.04em] text-[#e9e7e4] sm:text-[128px]">vlipa</h1>
+            <div className="mt-14 w-full max-w-[900px]">{composer}</div>
           </div>
         ) : (
           <>
             <div className="flex-1 overflow-y-auto">
-              <div className="mx-auto max-w-[820px] space-y-8 px-4 pb-6 pt-4 text-[15px]">
+              <div className="mx-auto max-w-[820px] space-y-8 px-4 pb-6 pt-6 text-[15px]">
                 {chat.msgs.map((m, i) =>
                   m.role === "user" ? (
                     <div key={i} className="flex flex-col items-end gap-1.5">
@@ -433,13 +498,13 @@ export function CodeChat() {
                           ))}
                         </div>
                       )}
-                      <div className="max-w-[85%] whitespace-pre-wrap rounded-3xl bg-[#2a2b2f] px-5 py-3">{m.content}</div>
+                      <div className="max-w-[85%] whitespace-pre-wrap rounded-3xl bg-[#2e3033] px-5 py-3">{m.content}</div>
                     </div>
                   ) : (
                     <div key={i}>
                       {!m.error && (
                         <div className="mb-2 flex items-center gap-2 text-xs text-zinc-500">
-                          <Code2 size={13} /> {CODE_MODELS.find((x) => x.key === m.model)?.label ?? "Vlipa Code"}
+                          <Logo id={m.model ?? ""} size={14} /> {modelName(m.model)}
                         </div>
                       )}
                       <div className={m.error ? "text-[#ff9592]" : "leading-relaxed text-zinc-200"}>{m.error ? m.content : <Markdown>{m.content}</Markdown>}</div>
@@ -458,7 +523,7 @@ export function CodeChat() {
                 <div ref={bottom} />
               </div>
             </div>
-            <div className="mx-auto w-full max-w-[880px] px-4 pb-5">{composer}</div>
+            <div className="mx-auto w-full max-w-[900px] px-4 pb-5">{composer}</div>
           </>
         )}
       </div>
@@ -466,7 +531,7 @@ export function CodeChat() {
       {historyOpen && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setHistoryOpen(false)}>
           <div className="absolute inset-0 bg-black/50" />
-          <aside className="relative h-full w-72 max-w-[85vw] border-r border-white/5 bg-[#1c1d1f] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <aside className="relative h-full w-72 max-w-[85vw] border-r border-white/5 bg-[#191a1c] shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </aside>
         </div>

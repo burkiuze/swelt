@@ -59,7 +59,7 @@ function usePopover() {
 const pill = "flex h-9 items-center gap-1.5 rounded-full border border-line-2 bg-[#202124] px-3 text-[13px] text-muted transition hover:text-white";
 
 /** Top-bar GitHub control: connect, pick repository + branch, disconnect. */
-export function GithubButton({ gh }: { gh: ReturnType<typeof useGithub> }) {
+export function GithubButton({ gh, compact }: { gh: ReturnType<typeof useGithub>; compact?: boolean }) {
   const { open, setOpen, ref } = usePopover();
   const [repos, setRepos] = useState<{ full_name: string; default_branch: string; private: boolean }[] | null>(null);
   const [branches, setBranches] = useState<string[]>([]);
@@ -81,27 +81,28 @@ export function GithubButton({ gh }: { gh: ReturnType<typeof useGithub> }) {
       .catch(() => {});
   }, [open, gh.target]);
 
+  const icon = "flex h-10 items-center gap-1.5 rounded-full px-2.5 text-zinc-400 transition hover:bg-white/5 hover:text-white";
   if (!gh.status?.configured) return null;
   if (!gh.connected) {
     return (
-      <a href="/api/github/connect" className={pill}>
-        <Github size={14} /> Connect GitHub
+      <a href="/api/github/connect" className={compact ? icon : pill} title="Connect GitHub">
+        <Github size={compact ? 20 : 14} /> {!compact && "Connect GitHub"}
       </a>
     );
   }
   return (
     <div ref={ref} className="relative">
-      <button className={pill} onClick={() => setOpen((o) => !o)}>
-        <Github size={14} />
-        <span className="max-w-[180px] truncate">{gh.target ? gh.target.repo.split("/")[1] : "Pick a repository"}</span>
-        {gh.target && (
+      <button className={compact ? icon : pill} onClick={() => setOpen((o) => !o)} title="GitHub repository">
+        <Github size={compact ? 20 : 14} />
+        {(!compact || gh.target) && <span className={`max-w-[140px] truncate ${compact ? "text-[13px]" : ""}`}>{gh.target ? gh.target.repo.split("/")[1] : "Pick a repository"}</span>}
+        {gh.target && !compact && (
           <span className="hidden items-center gap-1 text-dim sm:flex">
             <GitBranch size={12} /> {gh.target.branch}
           </span>
         )}
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-line-2 bg-[#1e1f22] p-1.5 shadow-2xl shadow-black/50">
+        <div className={`absolute left-0 z-50 w-80 overflow-hidden rounded-2xl border border-line-2 bg-[#1e1f22] p-1.5 shadow-2xl shadow-black/50 ${compact ? "bottom-full mb-2" : "top-full mt-2"}`}>
           <div className="flex items-center gap-2 px-3 py-2 text-xs text-dim">
             <Github size={13} /> Signed in as <span className="text-white">{gh.status.login}</span>
             <span className="flex-1" />

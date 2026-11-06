@@ -6,3 +6,4 @@ heygen.svg and tbc.svg are plain text monograms made for this site (no official 
 fal.png is the logo supplied by the site owner.
 microsoft and fish-audio SVGs are from @lobehub/icons-static-svg; deepgram.svg is a plain text monogram.
 deepseek, z-ai (zai), anthropic (claude) and openai SVGs are from @lobehub/icons-static-svg, recolored white.
+color/*.svg: hunyuan-color (Tencent), deepseek-color, nvidia-color, qwen-color, meta-color from @lobehub/icons-static-svg; z-ai is the white zai icon.

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { ArrowUp, AudioLines, Clapperboard, Hand, ImageIcon, Loader2, Plus, Shuffle, Sparkles, X } from "lucide-react";
+import { ArrowUp, AudioLines, Clapperboard, Code2, Hand, ImageIcon, Loader2, Plus, Shuffle, Sparkles, X } from "lucide-react";
 import { upload } from "@/lib/client";
 import { useAutosize } from "./useAutosize";
 import type { Effort, LlmKey } from "@/lib/llm";
@@ -41,10 +41,11 @@ export function AgentControls({ prefs, onChange, kind }: { prefs: AgentPrefs; on
   );
 }
 
-type Mode = "agent" | "image" | "video" | "audio";
+type Mode = "agent" | "code" | "image" | "video" | "audio";
 
 const MODES: { key: Mode; label: string; icon: typeof Sparkles; badge?: string; placeholder: string; prefix: string }[] = [
   { key: "agent", label: "Agent", icon: Sparkles, placeholder: "Tell the agent what you want to make — it plans the steps and picks the models.", prefix: "" },
+  { key: "code", label: "Code", icon: Code2, placeholder: "Ask for code, paste an error or describe a feature — opens Vlipa Code.", prefix: "" },
   { key: "image", label: "Image", icon: ImageIcon, placeholder: "Describe the image: subject, style, light, framing…", prefix: "" },
   { key: "video", label: "Video", icon: Clapperboard, badge: "New", placeholder: "Describe the shot: what moves, camera, mood, length…", prefix: "" },
   { key: "audio", label: "Voice", icon: AudioLines, placeholder: "Type the text to speak — the voice model reads it out loud…", prefix: "" },
@@ -57,6 +58,13 @@ const IDEAS: Record<Mode, { label: string; q: string; dot: string }[]> = {
     { label: "Turn my selfie into a cartoon avatar", q: "Turn my attached photo into a friendly cartoon avatar in 3 different styles.", dot: "from-emerald-300 to-teal-500" },
     { label: "Ad set for a running shoe", q: "Create 3 ad images for a neon running shoe (studio, street, trail), then a short video of the best one.", dot: "from-fuchsia-300 to-violet-500" },
     { label: "Album cover + looping visualizer", q: "Make a dreamy synthwave album cover, then a seamless 5s looping video from it.", dot: "from-pink-300 to-orange-400" },
+  ],
+  code: [
+    { label: "Landing page with Tailwind", q: "Build a responsive landing page for a coffee shop with Tailwind CSS: hero, menu grid and contact form.", dot: "from-teal-300 to-cyan-500" },
+    { label: "Fix my React error", q: "TypeError: Cannot read properties of undefined (reading 'map') — explain why this happens in React and how to fix it.", dot: "from-rose-300 to-orange-400" },
+    { label: "Python script to rename photos", q: "Write a Python script that renames all photos in a folder by their EXIF date.", dot: "from-yellow-200 to-lime-400" },
+    { label: "REST API with Express", q: "Create a REST API in Node.js + Express with JWT login, a users table and input validation.", dot: "from-indigo-300 to-violet-500" },
+    { label: "SQL running totals", q: "Write a SQL query for monthly revenue per customer with a running total.", dot: "from-sky-300 to-blue-500" },
   ],
   image: [
     { label: "Knitted toy duck, studio shot", q: "A knitted yellow toy duck on a pastel backdrop, soft studio light, product photo.", dot: "from-yellow-200 to-amber-400" },
@@ -112,6 +120,10 @@ export function PromptBox() {
 
   const go = (q = text) => {
     if (!q.trim()) return;
+    if (mode === "code") {
+      router.push(`/code?${new URLSearchParams({ q })}`);
+      return;
+    }
     const p = new URLSearchParams({ q: current.prefix + q, llm: prefs.llm, effort: prefs.effort, approval: prefs.approval ? "1" : "0" });
     for (const f of files) p.append("att", f);
     if (prefs.media !== "auto") p.set("media", prefs.media);
@@ -186,7 +198,7 @@ export function PromptBox() {
               e.target.value = "";
             }}
           />
-          <button
+          {mode !== "code" && <button
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
@@ -195,9 +207,13 @@ export function PromptBox() {
             aria-label="Add images"
           >
             {uploading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-          </button>
+          </button>}
           <div className="min-w-0 flex-1">
-            <AgentControls prefs={prefs} onChange={setPrefs} kind={mode === "agent" ? undefined : mode} />
+            {mode === "code" ? (
+              <span className="pl-2 text-[13px] text-muted">Tencent · Z.ai · DeepSeek · NVIDIA · Qwen · Meta</span>
+            ) : (
+              <AgentControls prefs={prefs} onChange={setPrefs} kind={mode === "agent" ? undefined : mode} />
+            )}
           </div>
           <button
             onClick={() => go()}

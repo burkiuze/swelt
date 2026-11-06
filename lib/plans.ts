@@ -58,17 +58,20 @@ export const CODE_PLAN = {
   blurb: "A fast coding assistant: 100 messages a day.",
 };
 
-// Coding models (OpenRouter slugs), always routed to the cheapest provider. `ultra` models also need
-// the Ultra media plan; `hint` lets the server find the live slug by name if the guessed one is wrong.
-export const CODE_MODELS = [
-  { key: "minimax", label: "MiniMax M3.1 Flash", vendor: "MiniMax", lab: "minimax", slug: "minimax/minimax-m3.1-flash", hint: "minimax.*m3\\.1.*flash", ultra: false, isNew: false },
-  { key: "deepseek", label: "DeepSeek V4.1 Flash", vendor: "DeepSeek", lab: "deepseek", slug: "deepseek/deepseek-v4.1-flash-1017", hint: "deepseek.*v4\\.1.*flash", ultra: false, isNew: false },
-  { key: "glm", label: "GLM 5.3 Flash", vendor: "Z.ai", lab: "z-ai", slug: "z-ai/glm-5.3-flash", hint: "glm.*5\\.3.*flash", ultra: false, isNew: false },
-  { key: "hy4", label: "Tencent HY4", vendor: "Tencent", lab: "tencent", slug: "tencent/hy4", hint: "tencent.*(hy|hunyuan)[- ]?4", ultra: false, isNew: true },
-  { key: "muse", label: "Muse Spark 1.3", vendor: "Meta", lab: "meta", slug: "meta/muse-spark-1.3-contributor", hint: "muse.*spark.*1\\.3", ultra: false, isNew: true },
-  { key: "opus", label: "Claude Opus 5.5", vendor: "Anthropic", lab: "anthropic", slug: "anthropic/claude-opus-5.5", hint: "claude.*opus.*5\\.5", ultra: true, isNew: false },
-  { key: "sol", label: "GPT-6.1 Sol", vendor: "OpenAI", lab: "openai", slug: "openai/gpt-6.1-sol", hint: "gpt-6\\.1.*sol", ultra: true, isNew: false },
+// Code chat model families. The model list itself is read live from OpenRouter (text models only).
+export const CODE_VENDORS = [
+  { key: "tencent", label: "Tencent", logo: "/brand/labs/color/tencent.svg", prefixes: ["tencent/"] },
+  { key: "z-ai", label: "Z.ai", logo: "/brand/labs/color/z-ai.svg", prefixes: ["z-ai/"] },
+  { key: "deepseek", label: "DeepSeek", logo: "/brand/labs/color/deepseek.svg", prefixes: ["deepseek/"] },
+  { key: "nvidia", label: "NVIDIA", logo: "/brand/labs/color/nvidia.svg", prefixes: ["nvidia/"] },
+  { key: "qwen", label: "Qwen", logo: "/brand/labs/color/qwen.svg", prefixes: ["qwen/"] },
+  { key: "meta", label: "Meta", logo: "/brand/labs/color/meta.svg", prefixes: ["meta-llama/", "meta/"] },
 ] as const;
-export type CodeModelKey = (typeof CODE_MODELS)[number]["key"];
+export type CodeVendorKey = (typeof CODE_VENDORS)[number]["key"];
+export type CodeModel = { id: string; name: string; vendor: CodeVendorKey; max: boolean; reasoning: boolean; isNew: boolean };
+export const CODE_DEFAULT_MODEL = "z-ai/glm-5.3-flash";
+export const CODE_EFFORTS = ["low", "medium", "high"] as const;
+export type CodeEffort = (typeof CODE_EFFORTS)[number];
+export const codeVendorOf = (id: string) => CODE_VENDORS.find((v) => v.prefixes.some((p) => id.startsWith(p)));
 
 export const isCodeCode = (code: string) => /^VLIPA-CODE-/i.test(code);

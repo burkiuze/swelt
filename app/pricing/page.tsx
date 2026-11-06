@@ -4,7 +4,7 @@ import { getModel, MODELS } from "@/lib/catalog";
 import { creditsLabel } from "@/lib/credits";
 import { modelAllowed } from "@/lib/plans";
 import { LLMS } from "@/lib/llm";
-import { CODE_MODELS, CODE_PLAN, PLAN_DAYS, PLANS } from "@/lib/plans";
+import { CODE_PLAN, CODE_VENDORS, PLAN_DAYS, PLANS } from "@/lib/plans";
 
 export const metadata = { title: "Pricing — Vlipa" };
 
@@ -164,7 +164,7 @@ export default function Page() {
           <ul className="space-y-3 self-center text-[15px]">
             {[
               `${CODE_PLAN.dailyLimit} messages every day (resets at 00:00 Turkey time)`,
-              ...CODE_MODELS.map((m) => `${m.label} (${m.vendor})`),
+              `Text models from ${CODE_VENDORS.map((v) => v.label).join(", ")}`,
               "Streaming answers with copyable code blocks",
               "Chat history saved in your browser",
               `Active for ${CODE_PLAN.days} days after you redeem the code`,
