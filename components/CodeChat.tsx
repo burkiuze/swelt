@@ -43,7 +43,7 @@ function Logo({ id, size = 20 }: { id: string; size?: number }) {
   return <img src={v.logo} alt="" width={size} height={size} className="shrink-0 object-contain" style={{ width: size, height: size }} />;
 }
 
-function ModelMenu({
+export function ModelMenu({
   models,
   value,
   onChange,
@@ -124,7 +124,7 @@ function ModelMenu({
       </button>
 
       {open && (
-        <div className="absolute bottom-full right-0 z-50 mb-2 w-[min(21rem,calc(100vw-2rem))]">
+        <div className="absolute bottom-full right-0 z-50 mb-2 w-[min(21rem,calc(100vw-2rem))] text-left">
           {/* Desktop: the vendor's models fly out to the left. */}
           {sub && <div className="absolute bottom-0 right-full mr-2 hidden w-80 rounded-[20px] border border-white/[0.07] bg-[#27292c] shadow-2xl shadow-black/60 sm:block">{modelList}</div>}
 
@@ -220,8 +220,13 @@ export function CodeChat() {
     try {
       prefs = JSON.parse(localStorage.getItem(PREF) || "{}");
     } catch {}
-    if (prefs.model) setChat((c) => ({ ...c, model: fixModel(prefs.model) }));
-    if (prefs.effort && CODE_EFFORTS.includes(prefs.effort)) setEffortState(prefs.effort);
+    // Model / thinking level picked on the home page win over the saved ones.
+    const url = new URLSearchParams(window.location.search);
+    const um = url.get("model");
+    const ue = url.get("effort") as CodeEffort | null;
+    if (um || prefs.model) setChat((c) => ({ ...c, model: fixModel(um || prefs.model) }));
+    if (ue && CODE_EFFORTS.includes(ue)) setEffortState(ue);
+    else if (prefs.effort && CODE_EFFORTS.includes(prefs.effort)) setEffortState(prefs.effort);
     fetch("/api/code/models")
       .then((r) => r.json())
       .then((d) => setModels(d.models ?? []))
@@ -481,7 +486,7 @@ export function CodeChat() {
 
         {empty ? (
           <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-24">
-            <h1 className="select-none text-center text-[56px] font-medium leading-none tracking-[-0.04em] text-[#e9e7e4] sm:text-[72px]">vlipa</h1>
+            <h1 className="select-none text-center text-[40px] font-medium leading-none tracking-[-0.03em] text-[#e9e7e4] sm:text-[52px]">vlipa</h1>
             <div className="mt-10 w-full max-w-[900px]">{composer}</div>
           </div>
         ) : (
